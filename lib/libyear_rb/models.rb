@@ -7,8 +7,8 @@ module LibyearRb
   Dependency = Data.define(:name, :version_requirements)
   Platform = Data.define(:name)
   RubyVersion = Data.define(:version, :engine, :patchlevel)
-
   GemVersion = Data.define(:name, :number, :created_at, :prerelease?)
+
   Result = Data.define(
     :name,
     :current_version,
