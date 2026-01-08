@@ -67,6 +67,10 @@ module LibyearRb
         opts.on("--verbose", "Run with verbose logs") do
           @options[:verbose] = true
         end
+
+        opts.separator ""
+        opts.separator "Environment variables:"
+        opts.separator "  SKIP_CACHE=1    Disable reading to and writing from the libyear-rb cache"
       end.parse!(@argv)
     end
 
