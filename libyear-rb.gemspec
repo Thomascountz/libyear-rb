@@ -5,8 +5,8 @@ require_relative "lib/libyear_rb/version"
 Gem::Specification.new do |spec|
   spec.name = "libyear-rb"
   spec.version = LibyearRb::VERSION
-  spec.authors = ["Thomas Countz"]
-  spec.email = ["thomascountz@gmail.com"]
+  spec.authors = ["Thomas Countz", "Benjamin Quorning"]
+  spec.email = ["thomascountz@gmail.com", "bquorning@zendesk.com"]
 
   spec.summary = "A simple measure of dependency freshness"
   spec.description = "libyear-rb analyzes your Gemfile.lock and tells you how out-of-date your dependencies are, in libyears (the time between your installed version and the newest version)."
