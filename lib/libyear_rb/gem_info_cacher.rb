@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "json"
-require "time"
 require "fileutils"
 
 module LibyearRb

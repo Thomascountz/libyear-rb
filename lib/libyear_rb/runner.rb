@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "uri"
-require "logger"
 
 module LibyearRb
   class Runner
