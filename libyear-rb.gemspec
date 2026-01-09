@@ -33,7 +33,6 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "bundler", ">= 2.0"
   spec.add_dependency "gems", "~> 1.3"
   spec.add_dependency "logger"
 end

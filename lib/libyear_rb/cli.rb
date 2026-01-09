@@ -2,7 +2,6 @@
 
 require "optparse"
 require "date"
-require "bundler"
 require "logger"
 
 module LibyearRb
@@ -84,8 +83,10 @@ module LibyearRb
     end
 
     def default_lockfile_path
-      if defined?(Bundler) && Bundler.respond_to?(:default_lockfile)
-        Bundler.default_lockfile.to_s
+      if ENV.key?("BUNDLE_LOCKFILE")
+        ENV["BUNDLE_LOCKFILE"]
+      elsif ENV.key?("BUNDLE_GEMFILE")
+        "#{ENV["BUNDLE_GEMFILE"]}.lock"
       else
         "Gemfile.lock"
       end
