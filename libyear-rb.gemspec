@@ -9,7 +9,8 @@ Gem::Specification.new do |spec|
   spec.email = ["thomascountz@gmail.com"]
 
   spec.summary = "A simple measure of dependency freshness"
-  spec.description = "libyear-rb analyzes your Gemfile.lock and tells you how out-of-date your dependencies are, in libyears (the time between your installed version and the newest version)."
+  spec.description = "libyear-rb analyzes your Gemfile.lock and tells you how out-of-date your dependencies are, " \
+                     "in libyears (the time between your installed version and the newest version)."
   spec.homepage = "https://github.com/thomascountz/libyear-rb"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
@@ -18,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
   spec.metadata["changelog_uri"] = "https://github.com/thomascountz/libyear-rb/blob/main/CHANGELOG.md"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   # Specify which files should be added to the gem when it is released.
   gemspec = File.basename(__FILE__)

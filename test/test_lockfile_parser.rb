@@ -49,6 +49,7 @@ class TestLockfileParser < Minitest::Test
     result = parser.parse(lockfile_content)
 
     specs = result.sources.first.specs
+
     assert_equal 2, specs.length
     assert_equal "rails", specs[0].name
     assert_equal "7.0.0", specs[0].version
@@ -79,6 +80,7 @@ class TestLockfileParser < Minitest::Test
     result = parser.parse(lockfile_content)
 
     rails_spec = result.sources.first.specs.first
+
     assert_equal "rails", rails_spec.name
     assert_equal 2, rails_spec.dependencies.length
     assert_equal "activesupport", rails_spec.dependencies[0].name
@@ -208,6 +210,7 @@ class TestLockfileParser < Minitest::Test
     result = parser.parse(lockfile_content)
 
     git_source = result.sources.first
+
     assert_equal :git, git_source.type
     assert_equal "https://github.com/rails/rails.git", git_source.remote
     assert_equal "abc123def456", git_source.revision

@@ -1,0 +1,34 @@
+require:
+  - standard
+
+plugins:
+  - rubocop-minitest
+  - rubocop-performance
+  - rubocop-rake
+  - standard-custom
+  - standard-performance
+
+inherit_gem:
+  standard: config/base.yml
+  standard-custom: config/base.yml
+  standard-performance: config/base.yml
+
+AllCops:
+  NewCops: enable
+
+Layout/LineLength:
+  Enabled: true
+  Max: 140 # TODO: Reduce to 120
+
+Lint/NoReturnInBeginEndBlocks:
+  Enabled: true
+
+Style/FormatString:
+  Enabled: true
+  EnforcedStyle: percent
+
+Style/RedundantInitialize:
+  Enabled: true
+
+Style/Documentation:
+  Enabled: false # TODO: Enable
