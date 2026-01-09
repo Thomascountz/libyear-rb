@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
-require "fileutils"
+require "pathname"
 
 module LibyearRb
   module GemInfoCacher
@@ -12,36 +12,41 @@ module LibyearRb
         return block.call
       end
 
-      cache_file = cache_path(remote_host, gem_name)
-      if cache_valid?(cache_file)
-        JSON.parse(File.read(cache_file))
+      cache_file_path = cache_file_path(remote_host, gem_name)
+      if cache_valid?(cache_file_path)
+        JSON.parse(cache_file_path.read)
       else
         block.call.tap do |data|
           return [] unless data
 
-          FileUtils.mkdir_p(File.dirname(cache_file))
-          File.write(cache_file, JSON.dump(data))
-          File.utime(Time.now, Time.now, cache_file)
+          cache_file_path.dirname.mkpath
+          cache_file_path.write(JSON.dump(data))
+          cache_file_path.utime(Time.now, Time.now)
         end
       end
     end
 
     private
 
-    def cache_valid?(cache_file)
-      return false unless File.exist?(cache_file)
+    def cache_valid?(cache_file_path)
+      return false unless cache_file_path.exist?
 
-      cache_age = Time.now - File.mtime(cache_file)
+      cache_age = Time.now - cache_file_path.mtime
       cache_age < CACHE_EXPIRATION
     end
 
-    def cache_dir
-      ENV["XDG_CACHE_HOME"] || File.join(Dir.home, ".cache")
+    def cache_file_path(remote_host, gem_name)
+      host_key = remote_host.gsub(/\W/, "_")
+      cache_folder_path.join("libyear-rb", host_key, "#{gem_name}.json")
     end
 
-    def cache_path(remote_host, gem_name)
-      host_key = remote_host.gsub(/[^a-zA-Z0-9]/, "_")
-      File.join(cache_dir, "libyear-rb", host_key, "#{gem_name}.json")
+    def cache_folder_path
+      @cache_folder_path ||=
+        if ENV.key?("XDG_CACHE_HOME")
+          ENV["XDG_CACHE_HOME"]
+        else
+          Pathname.new(Dir.home).join(".cache")
+        end
     end
   end
 end
