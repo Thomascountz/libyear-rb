@@ -36,7 +36,7 @@ module LibyearRb
     end
 
     def cache_file_path(remote_host, gem_name)
-      host_key = remote_host.gsub(/[^a-zA-Z0-9]/, "_")
+      host_key = remote_host.gsub(/\W/, "_")
       cache_folder_path.join("libyear-rb", host_key, "#{gem_name}.json")
     end
 
