@@ -26,7 +26,7 @@ module LibyearRb
     BUNDLED_VERSION = /^   ?([^ ].+)$/
 
     def parse(lockfile_content)
-      lines = lockfile_content.lines.map(&:chomp)
+      lines = lockfile_content.lines(chomp: true)
 
       sources = []
       platforms = []

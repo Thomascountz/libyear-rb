@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "date"
-require "logger"
-
 module LibyearRb
   class DependencyAnalyzer
     def initialize(logger: nil)

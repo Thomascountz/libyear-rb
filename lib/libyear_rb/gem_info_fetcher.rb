@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "gems"
-require "uri"
-require "time"
 require "date"
 require "rubygems"
 
