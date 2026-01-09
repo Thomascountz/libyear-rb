@@ -6,6 +6,8 @@ source "https://rubygems.org"
 gemspec
 
 gem "irb"
-gem "rake"
 gem "minitest"
+gem "rake"
+gem "rubocop-minitest"
+gem "rubocop-rake"
 gem "standard"

@@ -51,17 +51,21 @@ module LibyearRb
     end
 
     def client_for(remote_host)
-      @gem_source_clients[remote_host] ||= begin
-        source = sources.find { |gem_source| gem_source.uri.host == remote_host }
-        return nil unless source
+      return @gem_source_clients[remote_host] if @gem_source_clients.key?(remote_host)
 
+      client = nil
+      source = sources.find { |gem_source| gem_source.uri.host == remote_host }
+
+      if source
         uri = source.uri
-        Gems::Client.new(
+        client = Gems::Client.new(
           host: (uri.origin + uri.request_uri),
           username: uri.user,
           password: uri.password
         )
       end
+
+      @gem_source_clients[remote_host] = client
     end
 
     def sources
