@@ -3,4 +3,4 @@
 
 require "libyear_rb"
 
-LibyearRb::CLI.new(ARGV).run
+LibyearRb::CLI.new.run(ARGV.dup)

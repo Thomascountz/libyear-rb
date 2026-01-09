@@ -7,10 +7,8 @@ module LibyearRb
   module GemInfoCacher
     CACHE_EXPIRATION = 86_400 # 24 hours in seconds
 
-    def with_cache(remote_host, gem_name, &block)
-      if ENV["SKIP_CACHE"] == "1"
-        return block.call
-      end
+    def with_cache(remote_host, gem_name, use_cache: true, &block)
+      return block.call unless use_cache
 
       cache_file = cache_path(remote_host, gem_name)
       if cache_valid?(cache_file)

@@ -22,6 +22,7 @@ Total releases behind: 20
 - Supports any RubyGems.org-compatible gem server (private gem servers, mirrors, etc.)
 - Historical analysis with `--as-of` to see what your dependencies looked like at a specific date
 - Caches API responses to minimize network requests
+- Programmatic API for use as a Ruby library
 
 ## Installation
 
@@ -48,6 +49,7 @@ libyear-rb path/to/Gemfile.lock # Uses specified lockfile
 
 ```
 --as-of DATE    Analyze dependencies as of the given date (YYYY-MM-DD)
+--skip-cache    Disable reading from and writing to the cache
 --verbose       Run with verbose logs
 --help          Show help
 --version       Show version
@@ -59,6 +61,30 @@ You can analyze what your dependencies looked like at a specific point in time:
 
 ```bash
 libyear-rb --as-of 2024-01-01
+```
+
+### Programmatic Usage
+
+You can also use `libyear-rb` as a library in your Ruby code:
+
+```ruby
+require "libyear_rb"
+
+lockfile_contents = File.read("Gemfile.lock")
+report = LibyearRb.analyze(lockfile_contents)
+puts report
+```
+
+To customize the analysis, pass a `Config` object:
+
+```ruby
+config = LibyearRb::Config.new(
+  as_of: Date.new(2024, 1, 1),  # Analyze as of a specific date (default: today)
+  use_cache: false,             # Enable caching (default: true)
+  logger: Logger.new($stdout)   # Enable logging (default: Logger.new(IO::NULL))
+)
+
+report = LibyearRb.analyze(lockfile_contents, config: config)
 ```
 
 ## Private Gem Servers
@@ -77,7 +103,7 @@ Cache files are organized by gem source host, so metadata from different gem ser
 
 **To skip the cache:**
 ```bash
-SKIP_CACHE=1 libyear-rb
+libyear-rb --skip-cache
 ```
 
 **To clear the cache:**
