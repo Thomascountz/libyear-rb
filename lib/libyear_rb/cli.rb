@@ -1,47 +1,23 @@
 # frozen_string_literal: true
 
 require "optparse"
-require "date"
+require "optparse/date"
 require "logger"
 
 module LibyearRb
   class CLI
-    def initialize(argv = ARGV)
-      @argv = argv.dup
-      @options = {}
-      parse_options!
-    end
+    def run(args)
+      config = build_config(args)
+      lockfile_contents = read_lockfile(args)
 
-    def run
-      lockfile_contents = read_lockfile
-      logger = build_logger
-
-      lockfile_parser = LockfileParser.new
-      gem_info_fetcher = GemInfoFetcher.new
-      dependency_analyzer = DependencyAnalyzer.new(logger: logger)
-      reporter = PlaintextReporter.new
-
-      runner = Runner.new(
-        lockfile_parser: lockfile_parser,
-        gem_info_fetcher: gem_info_fetcher,
-        dependency_analyzer: dependency_analyzer,
-        reporter: reporter,
-        logger: logger
-      )
-
-      runner.run(lockfile_contents, as_of: @options[:as_of])
+      LibyearRb.analyze(lockfile_contents, config: config)
     end
 
     private
 
-    def build_logger
-      return nil unless @options[:verbose]
-
-      Logger.new($stderr)
-    end
-
-    def parse_options!
-      OptionParser.new do |opts|
+    def build_config(args)
+      config = Config.new
+      parser = OptionParser.new do |opts|
         opts.banner = "Usage: libyear-rb [Gemfile.lock] [options]"
         opts.program_name = "libyear-rb"
         opts.version = LibyearRb::VERSION
@@ -56,25 +32,30 @@ module LibyearRb
           exit
         end
 
-        opts.on("--as-of DATE", "Analyze dependencies as of the given date (YYYY-MM-DD)") do |date|
-          @options[:as_of] = Date.parse(date)
-        rescue ArgumentError
-          warn "Invalid date format. Please use YYYY-MM-DD."
-          exit 1
+        opts.on("--as-of DATE", Date, "Analyze dependencies as of the given date (YYYY-MM-DD)") do |date|
+          config.as_of = date
         end
 
         opts.on("--verbose", "Run with verbose logs") do
-          @options[:verbose] = true
+          config.logger = Logger.new($stdout)
         end
 
-        opts.separator ""
-        opts.separator "Environment variables:"
-        opts.separator "  SKIP_CACHE=1    Disable reading to and writing from the libyear-rb cache"
-      end.parse!(@argv)
+        opts.on("--skip-cache", "Disable reading from and writing to the cache") do
+          config.use_cache = false
+        end
+      end
+
+      begin
+        parser.parse!(args)
+      rescue OptionParser::ParseError => e
+        abort "#{e.message}\n\n#{parser.help}"
+      end
+
+      config
     end
 
-    def read_lockfile
-      lockfile_path = @argv[0] || default_lockfile_path
+    def read_lockfile(args)
+      lockfile_path = args[0] || default_lockfile_path
 
       File.read(lockfile_path)
     rescue Errno::ENOENT

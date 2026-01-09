@@ -11,7 +11,8 @@ module LibyearRb
     RATE_LIMIT = 10 # https://guides.rubygems.org/rubygems-org-rate-limits/
     RATE_LIMIT_INTERVAL = 1.0 / RATE_LIMIT
 
-    def initialize
+    def initialize(use_cache: true)
+      @use_cache = use_cache
       @gem_source_clients = {}
       @last_request_time = Hash.new { |hash, key| hash[key] = Time.now - RATE_LIMIT_INTERVAL }
     end
@@ -27,7 +28,7 @@ module LibyearRb
     private
 
     def fetch_raw_versions(client, remote_host, gem_name)
-      with_cache(remote_host, gem_name) do
+      with_cache(remote_host, gem_name, use_cache: @use_cache) do
         wait_for_rate_limit(remote_host)
 
         client.versions(gem_name)
