@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-require "gems"
+require "connection_pool"
 require "date"
+require "gems"
 require "rubygems"
 
 module LibyearRb
@@ -12,16 +13,21 @@ module LibyearRb
     RATE_LIMIT_INTERVAL = 1.0 / RATE_LIMIT
 
     def initialize
-      @gem_source_clients = {}
+      @gem_source_client_pools = {}
       @last_request_time = Hash.new { |hash, key| hash[key] = Time.now - RATE_LIMIT_INTERVAL }
     end
 
-    def gem_versions_for(gem_name, remote_host)
-      client = client_for(remote_host)
-      return [] unless client
+    def prepare_pool_for(remote_host)
+      pool_for(remote_host)
+    end
 
-      raw_versions = fetch_raw_versions(client, remote_host, gem_name)
-      build_versions(gem_name, raw_versions)
+    def gem_versions_for(gem_name, remote_host)
+      pool_for(remote_host).with do |client|
+        return [] unless client
+
+        raw_versions = fetch_raw_versions(client, remote_host, gem_name)
+        build_versions(gem_name, raw_versions)
+      end
     end
 
     private
@@ -48,26 +54,22 @@ module LibyearRb
         end
     end
 
-    def client_for(remote_host)
-      return @gem_source_clients[remote_host] if @gem_source_clients.key?(remote_host)
-
-      client = nil
-      source = sources.find { |gem_source| gem_source.uri.host == remote_host }
-
-      if source
-        uri = source.uri
-        client = Gems::Client.new(
-          host: (uri.origin + uri.request_uri),
-          username: uri.user,
-          password: uri.password
-        )
+    def pool_for(remote_host)
+      @gem_source_client_pools[remote_host] ||= begin
+        ConnectionPool.new(size: 4, timeout: 30) do
+          if (uri = source_uris.fetch(remote_host))
+            Gems::Client.new(
+              host: (uri.origin + uri.request_uri),
+              username: uri.user,
+              password: uri.password
+            )
+          end
+        end
       end
-
-      @gem_source_clients[remote_host] = client
     end
 
-    def sources
-      @sources ||= Gem.sources.each_source.to_a
+    def source_uris
+      @source_uris ||= Gem.sources.each_source.to_h { |s| [s.uri.host, s.uri] }
     end
 
     def wait_for_rate_limit(remote_host)

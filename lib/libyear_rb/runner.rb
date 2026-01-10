@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "parallel"
 require "uri"
 
 module LibyearRb
@@ -13,7 +14,7 @@ module LibyearRb
     end
 
     def run(lockfile_contents, as_of: nil)
-      results = []
+      gems_to_fetch = {}
       lockfile = @lockfile_parser.parse(lockfile_contents)
       lockfile.sources.each do |source|
         unless source.type == :gem && !source.remote.nil?
@@ -24,6 +25,15 @@ module LibyearRb
         remote_host = URI.parse(source.remote).host
 
         source.specs.each do |spec|
+          gems_to_fetch[remote_host] ||= []
+          gems_to_fetch[remote_host] << spec
+        end
+
+        @gem_info_fetcher.prepare_pool_for(remote_host)
+      end
+
+      results = Parallel.flat_map(gems_to_fetch) do |remote_host, specs|
+        Parallel.filter_map(specs, in_threads: 10) do |spec|
           gem_name = spec.name
           gem_version = spec.version
           versions_metadata = @gem_info_fetcher.gem_versions_for(gem_name, remote_host)
@@ -36,8 +46,7 @@ module LibyearRb
             next
           end
 
-          result = @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata)
-          results << result if result
+          @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata)
         end
       end
       @reporter.generate(results)

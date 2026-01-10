@@ -33,6 +33,8 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "connection_pool"
   spec.add_dependency "gems", "~> 1.3"
   spec.add_dependency "logger"
+  spec.add_dependency "parallel"
 end
