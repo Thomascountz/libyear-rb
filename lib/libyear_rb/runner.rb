@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "parallel"
 require "uri"
 
 module LibyearRb
@@ -28,27 +27,37 @@ module LibyearRb
           gems_to_fetch[remote_host] ||= []
           gems_to_fetch[remote_host] << spec
         end
-
-        @gem_info_fetcher.prepare_pool_for(remote_host)
       end
 
-      results = Parallel.flat_map(gems_to_fetch) do |remote_host, specs|
-        Parallel.filter_map(specs, in_threads: 10) do |spec|
-          gem_name = spec.name
-          gem_version = spec.version
-          versions_metadata = @gem_info_fetcher.gem_versions_for(gem_name, remote_host)
-            .reject { |version| as_of && version.created_at > as_of }
-            .sort_by(&:number)
-            .reverse
+      results = []
+      host_threads = []
+      spec_threads = {}
+      gems_to_fetch.each do |remote_host, specs|
+        host_threads << Thread.new do
+          spec_threads[remote_host] = []
+          specs.each do |spec|
+            spec_threads[remote_host] << Thread.new do
+              gem_name = spec.name
+              gem_version = spec.version
 
-          if versions_metadata.empty?
-            @logger&.warn("Skipping #{gem_name}: no version metadata from #{remote_host}")
-            next
+              versions_metadata = @gem_info_fetcher.gem_versions_for(gem_name, remote_host)
+                .reject { |version| as_of && version.created_at > as_of }
+                .sort_by(&:number)
+                .reverse
+
+              if versions_metadata.empty?
+                @logger&.warn("Skipping #{gem_name}: no version metadata from #{remote_host}")
+                next
+              end
+
+              result = @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata)
+              results << result if result
+            end
           end
-
-          @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata)
+          spec_threads[remote_host].each(&:join)
         end
       end
+      host_threads.each(&:join)
       @reporter.generate(results)
       results
     end
