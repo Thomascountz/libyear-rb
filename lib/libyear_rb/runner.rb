@@ -58,7 +58,10 @@ module LibyearRb
         end
       end
       host_threads.each(&:join)
-      @reporter.generate(results)
+      @reporter.generate(
+        results,
+        gems_to_fetch.values.flat_map(&:itself).uniq(&:name).length
+      )
       results
     end
   end

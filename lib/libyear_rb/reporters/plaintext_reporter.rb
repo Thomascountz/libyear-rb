@@ -6,7 +6,7 @@ module LibyearRb
     COLUMN_BUFFER = 3
     HEADERS = ["Gem", "Current", "Current Date", "Latest", "Latest Date", "Versions", "Days", "Years"].freeze
 
-    def generate(results)
+    def generate(results, dep_count)
       rows = results.sort_by(&:name).filter_map do |result|
         row_for(result) unless result.version_distance.zero?
       end
@@ -22,6 +22,8 @@ module LibyearRb
       total_versions = results.sum { |r| r.version_distance || 0 }
       @io.puts "System is %.2f libyears behind" % (total_days / 365.0)
       @io.puts "Total releases behind: #{total_versions}"
+      @io.puts "Number of dependencies: #{dep_count}"
+      @io.puts "Oldness: %.2f months/lib" % (12 * total_days / 365.0 / dep_count)
     end
 
     private

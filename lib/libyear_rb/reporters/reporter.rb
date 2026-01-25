@@ -6,7 +6,7 @@ module LibyearRb
       @io = io
     end
 
-    def generate(dependency_freshness)
+    def generate(dependency_freshness, dep_count)
       raise NotImplementedError, "Subclasses must implement the generate method"
     end
   end
