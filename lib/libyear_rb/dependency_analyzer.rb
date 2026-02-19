@@ -2,15 +2,15 @@
 
 module LibyearRb
   class DependencyAnalyzer
-    def initialize(config: Config.new)
-      @config = config
+    def initialize(logger: Logger.new(IO::NULL))
+      @logger = logger
     end
 
     def calculate_dependency_freshness(gem_name, gem_version, versions_metadata)
       current_version_info = versions_metadata.find { |version| version.number == gem_version }
 
       if current_version_info.nil?
-        @config.logger.warn("Skipping #{gem_name}: installed version #{gem_version} not found in metadata")
+        @logger.warn("Skipping #{gem_name}: installed version #{gem_version} not found in metadata")
         return
       end
 

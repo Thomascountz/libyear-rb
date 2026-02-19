@@ -17,10 +17,11 @@ module LibyearRb
 
   def self.analyze(lockfile_contents, config: Config.new)
     runner = Runner.new(
-      config: config,
+      logger: config.logger,
+      as_of: config.as_of,
       lockfile_parser: LockfileParser.new,
-      gem_info_fetcher: GemInfoFetcher.new(config: config),
-      dependency_analyzer: DependencyAnalyzer.new(config: config),
+      gem_info_fetcher: GemInfoFetcher.new(use_cache: config.use_cache?),
+      dependency_analyzer: DependencyAnalyzer.new(logger: config.logger),
       reporter: PlaintextReporter.new
     )
 

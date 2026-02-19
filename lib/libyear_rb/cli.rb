@@ -16,7 +16,7 @@ module LibyearRb
     private
 
     def build_config(args)
-      config = Config.new
+      options = {}
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: libyear-rb [Gemfile.lock] [options]"
         opts.program_name = "libyear-rb"
@@ -33,15 +33,15 @@ module LibyearRb
         end
 
         opts.on("--as-of DATE", Date, "Analyze dependencies as of the given date (YYYY-MM-DD)") do |date|
-          config.as_of = date
+          options[:as_of] = date
         end
 
-        opts.on("--verbose", FalseClass, "Run with verbose logs") do |verbose|
-          config.logger = Logger.new($stdout) if verbose
+        opts.on("--verbose", "Run with verbose logs") do
+          options[:logger] = Logger.new($stdout)
         end
 
-        opts.on("--skip-cache", FalseClass, "Disable reading from and writing to the cache") do |skip_cache|
-          config.use_cache = !skip_cache
+        opts.on("--skip-cache", "Disable reading from and writing to the cache") do
+          options[:use_cache] = false
         end
       end
 
@@ -51,7 +51,7 @@ module LibyearRb
         abort "#{e.message}\n\n#{parser.help}"
       end
 
-      config
+      Config.new(**options)
     end
 
     def read_lockfile(args)
