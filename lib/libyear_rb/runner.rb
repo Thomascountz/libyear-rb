@@ -4,13 +4,12 @@ require "uri"
 
 module LibyearRb
   class Runner
-    def initialize(lockfile_parser:, gem_info_fetcher:, dependency_analyzer:, reporter:, as_of: Date.today, logger: Logger.new(IO::NULL))
+    def initialize(config:, lockfile_parser:, gem_info_fetcher:, dependency_analyzer:, reporter:)
+      @config = config
       @lockfile_parser = lockfile_parser
       @gem_info_fetcher = gem_info_fetcher
       @dependency_analyzer = dependency_analyzer
       @reporter = reporter
-      @as_of = as_of
-      @logger = logger
     end
 
     def run(lockfile_contents)
@@ -18,7 +17,7 @@ module LibyearRb
       lockfile = @lockfile_parser.parse(lockfile_contents)
       lockfile.sources.each do |source|
         unless source.type == :gem && !source.remote.nil?
-          @logger.warn("Skipping source #{source.type}: unsupported source type or missing remote")
+          @config.logger.warn("Skipping source #{source.type}: unsupported source type or missing remote")
           next
         end
 
@@ -28,12 +27,12 @@ module LibyearRb
           gem_name = spec.name
           gem_version = spec.version
           versions_metadata = @gem_info_fetcher.gem_versions_for(gem_name, remote_host)
-            .reject { |version| version.created_at > @as_of }
+            .reject { |version| version.created_at > @config.as_of }
             .sort_by(&:number)
             .reverse
 
           if versions_metadata.empty?
-            @logger.warn("Skipping #{gem_name}: no version metadata from #{remote_host}")
+            @config.logger.warn("Skipping #{gem_name}: no version metadata from #{remote_host}")
             next
           end
 

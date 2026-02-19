@@ -16,18 +16,12 @@ module LibyearRb
   class Error < StandardError; end
 
   def self.analyze(lockfile_contents, config: Config.new)
-    lockfile_parser = LockfileParser.new
-    gem_info_fetcher = GemInfoFetcher.new(use_cache: config.use_cache)
-    dependency_analyzer = DependencyAnalyzer.new(logger: config.logger)
-    reporter = PlaintextReporter.new
-
     runner = Runner.new(
-      as_of: config.as_of,
-      logger: config.logger,
-      lockfile_parser: lockfile_parser,
-      gem_info_fetcher: gem_info_fetcher,
-      dependency_analyzer: dependency_analyzer,
-      reporter: reporter
+      config: config,
+      lockfile_parser: LockfileParser.new,
+      gem_info_fetcher: GemInfoFetcher.new(config: config),
+      dependency_analyzer: DependencyAnalyzer.new(config: config),
+      reporter: PlaintextReporter.new
     )
 
     runner.run(lockfile_contents)

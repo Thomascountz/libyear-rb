@@ -36,12 +36,12 @@ module LibyearRb
           config.as_of = date
         end
 
-        opts.on("--verbose", "Run with verbose logs") do
-          config.logger = Logger.new($stdout)
+        opts.on("--verbose", FalseClass, "Run with verbose logs") do |verbose|
+          config.logger = Logger.new($stdout) if verbose
         end
 
-        opts.on("--skip-cache", "Disable reading from and writing to the cache") do
-          config.use_cache = false
+        opts.on("--skip-cache", FalseClass, "Disable reading from and writing to the cache") do |skip_cache|
+          config.use_cache = !skip_cache
         end
       end
 
