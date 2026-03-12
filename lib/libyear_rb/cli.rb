@@ -19,7 +19,8 @@ module LibyearRb
       lockfile_parser = LockfileParser.new
       gem_info_fetcher = GemInfoFetcher.new
       dependency_analyzer = DependencyAnalyzer.new(logger: logger)
-      reporter = PlaintextReporter.new
+      # reporter = PlaintextReporter.new
+      reporter = BubbleteaReporter.new
 
       runner = Runner.new(
         lockfile_parser: lockfile_parser,

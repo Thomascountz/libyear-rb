@@ -4,6 +4,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "bubbles", "~> 0.1"
+gem "bubbletea", "~> 0.1"
 gem "irb"
 gem "minitest"
 gem "rake"
