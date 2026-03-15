@@ -4,11 +4,11 @@ require "uri"
 
 module LibyearRb
   class Runner
-    def initialize(lockfile_parser:, gem_info_fetcher:, dependency_analyzer:, reporter:, logger: nil)
+    def initialize(lockfile_parser:, gem_info_fetcher:, dependency_analyzer:, formatter:, logger: nil)
       @lockfile_parser = lockfile_parser
       @gem_info_fetcher = gem_info_fetcher
       @dependency_analyzer = dependency_analyzer
-      @reporter = reporter
+      @formatter = formatter
       @logger = logger
     end
 
@@ -40,7 +40,7 @@ module LibyearRb
           results << result if result
         end
       end
-      @reporter.generate(results)
+      @formatter.generate(results)
       results
     end
   end

@@ -3,10 +3,10 @@
 require_relative "test_helper"
 require "stringio"
 
-class TestPlaintextReporter < Minitest::Test
+class TestPlaintextFormatter < Minitest::Test
   def test_formats_single_outdated_gem
     output = StringIO.new
-    reporter = LibyearRb::PlaintextReporter.new(io: output)
+    formatter = LibyearRb::PlaintextFormatter.new(io: output)
     results = [
       LibyearRb::Result.new(
         name: "rails",
@@ -20,7 +20,7 @@ class TestPlaintextReporter < Minitest::Test
       )
     ]
 
-    reporter.generate(results)
+    formatter.generate(results)
 
     expected = <<~OUTPUT
            Gem    Current    Current Date    Latest    Latest Date    Versions    Days    Years
@@ -34,7 +34,7 @@ class TestPlaintextReporter < Minitest::Test
 
   def test_formats_multiple_outdated_gems_sorted_by_name
     output = StringIO.new
-    reporter = LibyearRb::PlaintextReporter.new(io: output)
+    formatter = LibyearRb::PlaintextFormatter.new(io: output)
     results = [
       LibyearRb::Result.new(
         name: "zeitwerk",
@@ -58,7 +58,7 @@ class TestPlaintextReporter < Minitest::Test
       )
     ]
 
-    reporter.generate(results)
+    formatter.generate(results)
 
     expected = <<~OUTPUT
                   Gem    Current    Current Date    Latest    Latest Date    Versions    Days    Years
@@ -73,7 +73,7 @@ class TestPlaintextReporter < Minitest::Test
 
   def test_excludes_up_to_date_gems
     output = StringIO.new
-    reporter = LibyearRb::PlaintextReporter.new(io: output)
+    formatter = LibyearRb::PlaintextFormatter.new(io: output)
     results = [
       LibyearRb::Result.new(
         name: "outdated",
@@ -97,7 +97,7 @@ class TestPlaintextReporter < Minitest::Test
       )
     ]
 
-    reporter.generate(results)
+    formatter.generate(results)
 
     assert_includes output.string, "outdated"
     refute_includes output.string, "current"
@@ -105,16 +105,16 @@ class TestPlaintextReporter < Minitest::Test
 
   def test_outputs_nothing_when_empty
     output = StringIO.new
-    reporter = LibyearRb::PlaintextReporter.new(io: output)
+    formatter = LibyearRb::PlaintextFormatter.new(io: output)
 
-    reporter.generate([])
+    formatter.generate([])
 
     assert_equal "", output.string
   end
 
   def test_displays_unknown_for_nil_values
     output = StringIO.new
-    reporter = LibyearRb::PlaintextReporter.new(io: output)
+    formatter = LibyearRb::PlaintextFormatter.new(io: output)
     results = [
       LibyearRb::Result.new(
         name: "mystery-gem",
@@ -128,7 +128,7 @@ class TestPlaintextReporter < Minitest::Test
       )
     ]
 
-    reporter.generate(results)
+    formatter.generate(results)
 
     expected = <<~OUTPUT
                  Gem    Current    Current Date     Latest    Latest Date    Versions       Days      Years
