@@ -36,7 +36,7 @@ module LibyearRb
     end
 
     def cache_dir
-      ENV["XDG_CACHE_HOME"] || Pathname.new(Dir.home).join(".cache")
+      Pathname.new(ENV["XDG_CACHE_HOME"] || File.join(Dir.home, ".cache"))
     end
 
     def cache_file_path(remote_host, gem_name)
