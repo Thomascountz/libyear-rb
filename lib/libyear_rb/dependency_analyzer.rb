@@ -6,7 +6,7 @@ module LibyearRb
       @logger = logger
     end
 
-    def calculate_dependency_freshness(gem_name, gem_version, versions_metadata)
+    def calculate_dependency_freshness(gem_name, gem_version, versions_metadata, is_direct: true)
       current_version_info = versions_metadata.find { |version| version.number == gem_version }
 
       if current_version_info.nil?
@@ -41,7 +41,7 @@ module LibyearRb
         latest_version_release_date: latest_release_date,
         version_distance: version_distance,
         libyear_in_days: libyear_in_days,
-        is_direct: true
+        is_direct: is_direct
       )
     end
   end

@@ -131,4 +131,20 @@ class TestDependencyAnalyzer < Minitest::Test
     assert_equal 730, result.libyear_in_days
     assert result.is_direct
   end
+
+  def test_is_direct_defaults_to_true
+    analyzer = LibyearRb::DependencyAnalyzer.new
+    versions_metadata = [
+      LibyearRb::GemVersion.new(name: "x", number: Gem::Version.new("2.0"), created_at: Date.today, prerelease?: false),
+      LibyearRb::GemVersion.new(name: "x", number: Gem::Version.new("1.0"), created_at: Date.new(2022, 1, 1), prerelease?: false)
+    ]
+
+    result = analyzer.calculate_dependency_freshness("x", Gem::Version.new("1.0"), versions_metadata)
+
+    assert result.is_direct
+
+    result = analyzer.calculate_dependency_freshness("x", Gem::Version.new("1.0"), versions_metadata, is_direct: false)
+
+    refute result.is_direct
+  end
 end
