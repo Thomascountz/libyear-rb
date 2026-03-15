@@ -52,9 +52,9 @@ class TestLockfileParser < Minitest::Test
 
     assert_equal 2, specs.length
     assert_equal "rails", specs[0].name
-    assert_equal "7.0.0", specs[0].version
+    assert_equal Gem::Version.new("7.0.0"), specs[0].version
     assert_equal "rake", specs[1].name
-    assert_equal "13.0.0", specs[1].version
+    assert_equal Gem::Version.new("13.0.0"), specs[1].version
   end
 
   def test_parses_specs_with_dependencies

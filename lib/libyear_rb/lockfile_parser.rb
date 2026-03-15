@@ -137,7 +137,7 @@ module LibyearRb
 
         specs << Spec.new(
           name: name,
-          version: version,
+          version: version && Gem::Version.new(version),
           dependencies: dependencies
         )
       end
