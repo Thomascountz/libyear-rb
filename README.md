@@ -52,10 +52,11 @@ Total releases behind: 20
 Options:
 
 ```
---as-of DATE    Only consider versions released before DATE (YYYY-MM-DD)
---verbose       Run with logs
---help          Show help
---version       Show version
+--as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
+--format FORMATTER  Choose an output formatter
+--verbose           Run with logs
+--help              Show help
+--version           Show version
 ```
 
 ### As a Library
@@ -76,6 +77,14 @@ Configure the cache or logger before use:
 LibyearRb.cache = LibyearRb::FileCache.new(skip_cache: true)
 LibyearRb.logger = Logger.new($stderr)
 ```
+
+### Custom Formatters
+
+You can add a third-party output formatter as a gem. The formatter name must be a single word containing only letters. The gem name must follow the pattern `libyear-rb-<name>-formatter`, and contain a file `libyear_rb/formatters/<name>_formatter` which defines a formatter class in the `LibyearRb` namespace. For example:
+
+- Gem is called `libyear-rb-json-formatter`.
+- Its lib/libyear_rb/formatters/json_formatter.rb defines the class `LibyearRb::JsonFormatter`, which inherits from `LibyearRb::Formatter` and implements the `#generate` method.
+- Then run `libyear-rb --format json`.
 
 ## Private Gem Servers
 
@@ -100,7 +109,7 @@ rm -rf ~/.cache/libyear-rb
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. 
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests.
 
 ### Commands
 
