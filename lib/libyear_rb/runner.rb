@@ -4,7 +4,7 @@ require "uri"
 
 module LibyearRb
   class Runner
-    MAX_WORKERS_PER_HOST = 10
+    MAX_WORKERS_PER_HOST = 5
     RATE_LIMIT = 10 # requests per second per host
 
     def initialize(lockfile_parser:, gem_info_fetcher_factory:, dependency_analyzer:, formatter:, logger: nil)
@@ -28,6 +28,7 @@ module LibyearRb
         remote_host = URI.parse(source.remote).host
         (jobs_by_host[remote_host] ||= []).concat(source.specs)
       end
+      jobs_by_host.transform_values! { |specs| specs.uniq(&:name) }
 
       results = []
       results_mutex = Mutex.new
@@ -56,28 +57,55 @@ module LibyearRb
         end
 
         # Consumers: pop spec, acquire token, process
-        [specs.size, MAX_WORKERS_PER_HOST].min.times do
+        [specs.size, MAX_WORKERS_PER_HOST].min.times do |i|
           threads << Thread.new do
+            Thread.current.name = "#{remote_host}/#{i}"
             fetcher = @gem_info_fetcher_factory.call
+            wait_total = 0.0
+            work_total = 0.0
+            count = 0
             while (spec = work_queue.pop)
-              token_queue.pop # wait for rate limit token
+              t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+              token_queue.pop
+              t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               process_spec(fetcher, spec, remote_host, as_of, results, results_mutex)
+              t2 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+              wait_total += (t1 - t0)
+              work_total += (t2 - t1)
+              count += 1
             end
+            {name: Thread.current.name, count: count, wait: wait_total, work: work_total}
           end
         end
       end
 
-      threads.each(&:join)
+      stats = threads.map { |t| t.join.value }.select { |v| v.is_a?(Hash) }
       replenishers.each(&:kill)
       @formatter.generate(results)
+      log_worker_stats(stats)
       results
     end
 
     private
 
+    def log_worker_stats(stats)
+      return unless @logger
+
+      stats.each do |s|
+        @logger.info("[#{s[:name]}] #{s[:count]} gems, " \
+          "#{"%.2f" % s[:wait]}s waiting, #{"%.2f" % s[:work]}s working")
+      end
+      total_wait = stats.sum { |s| s[:wait] }
+      total_work = stats.sum { |s| s[:work] }
+      total_gems = stats.sum { |s| s[:count] }
+      @logger.info("Total: #{total_gems} gems, #{stats.size} workers, " \
+        "#{"%.2f" % total_wait}s waiting, #{"%.2f" % total_work}s working")
+    end
+
     def process_spec(fetcher, spec, remote_host, as_of, results, results_mutex)
       gem_name = spec.name
       gem_version = spec.version
+      @logger&.info("[#{Thread.current.name}] Fetching #{gem_name} from #{remote_host}")
       versions_metadata = fetcher.gem_versions_for(gem_name, remote_host)
         .reject { |version| as_of && version.created_at > as_of }
         .sort_by(&:number)
