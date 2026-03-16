@@ -63,7 +63,8 @@ class SortableTable < Bubbles::Table
   def reorder!
     self.rows = rows.sort_by do |row|
       v = row[@focused_header]
-      /\d/.match?(v[0]) ? v.to_f : v.to_s
+      sort_key = /\d/.match?(v[0]) ? v.to_f : v.to_s
+      [sort_key, row[0]]
     end
     self.rows = rows.reverse if @direction == :desc
   end
