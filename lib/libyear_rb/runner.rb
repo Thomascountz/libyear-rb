@@ -24,19 +24,17 @@ module LibyearRb
         remote_host = URI.parse(source.remote).host
 
         source.specs.each do |spec|
-          gem_name = spec.name
-          gem_version = spec.version
-          versions_metadata = @gem_info_fetcher.gem_versions_for(gem_name, remote_host)
+          versions_metadata = @gem_info_fetcher.gem_versions_for(spec.name, remote_host)
             .reject { |version| as_of && version.created_at > as_of }
             .sort_by(&:number)
             .reverse
 
           if versions_metadata.empty?
-            @logger&.warn("Skipping #{gem_name}: no version metadata from #{remote_host}")
+            @logger&.warn("Skipping #{spec.name}: no version metadata from #{remote_host}")
             next
           end
 
-          result = @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata, is_direct: spec.direct)
+          result = @dependency_analyzer.calculate_dependency_freshness(spec, versions_metadata)
 
           results << result if result
         end

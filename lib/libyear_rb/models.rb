@@ -4,7 +4,7 @@ module LibyearRb
   Lockfile = Data.define(:sources, :platforms, :dependencies, :ruby_version, :bundled_with)
   Source = Data.define(:type, :remote, :revision, :specs, :options)
   Spec = Data.define(:name, :version, :dependencies, :direct) do
-    def initialize(name:, version:, dependencies:, direct: false)
+    def initialize(name:, version:, dependencies: [], direct: false)
       super
     end
   end
