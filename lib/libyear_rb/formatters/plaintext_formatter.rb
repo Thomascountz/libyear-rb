@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module LibyearRb
-  class PlaintextReporter < Reporter
+  class PlaintextFormatter < Formatter
     UNKNOWN = "Unknown"
     COLUMN_BUFFER = 3
     HEADERS = ["Gem", "Current", "Current Date", "Latest", "Latest Date", "Versions", "Days", "Years"].freeze
