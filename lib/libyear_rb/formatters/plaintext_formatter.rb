@@ -7,11 +7,15 @@ module LibyearRb
     HEADERS = ["Gem", "Current", "Current Date", "Latest", "Latest Date", "Versions", "Days", "Years"].freeze
 
     def generate(results)
-      rows = results.sort_by(&:name).filter_map do |result|
-        row_for(result) unless result.version_distance.zero?
+      outdated_results = results.reject do |result|
+        result.version_distance.zero?
       end
 
-      return if rows.empty?
+      return if outdated_results.empty?
+
+      rows = outdated_results.sort_by(&:name).map do |result|
+        row_for(result)
+      end
 
       widths = calculate_widths(rows)
       @io.puts format_row(HEADERS, widths)
