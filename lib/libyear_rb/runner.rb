@@ -15,7 +15,6 @@ module LibyearRb
     def run(lockfile_contents, as_of: nil)
       results = []
       lockfile = @lockfile_parser.parse(lockfile_contents)
-      direct_dependency_names = lockfile.dependencies.map(&:name).uniq
       lockfile.sources.each do |source|
         unless source.type == :gem && !source.remote.nil?
           @logger&.warn("Skipping source #{source.type}: unsupported source type or missing remote")
@@ -37,8 +36,7 @@ module LibyearRb
             next
           end
 
-          is_direct = direct_dependency_names.include?(gem_name)
-          result = @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata, is_direct: is_direct)
+          result = @dependency_analyzer.calculate_dependency_freshness(gem_name, gem_version, versions_metadata, is_direct: spec.direct)
 
           results << result if result
         end
