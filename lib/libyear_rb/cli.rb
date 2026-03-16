@@ -17,13 +17,13 @@ module LibyearRb
       logger = build_logger
 
       lockfile_parser = LockfileParser.new
-      gem_info_fetcher = GemInfoFetcher.new
+      gem_info_fetcher_factory = -> { GemInfoFetcher.new }
       dependency_analyzer = DependencyAnalyzer.new(logger: logger)
       formatter = PlaintextFormatter.new
 
       runner = Runner.new(
         lockfile_parser: lockfile_parser,
-        gem_info_fetcher: gem_info_fetcher,
+        gem_info_fetcher_factory: gem_info_fetcher_factory,
         dependency_analyzer: dependency_analyzer,
         formatter: formatter,
         logger: logger
