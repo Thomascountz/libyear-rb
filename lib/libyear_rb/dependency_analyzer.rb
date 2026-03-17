@@ -6,11 +6,11 @@ module LibyearRb
       @logger = logger
     end
 
-    def calculate_dependency_freshness(gem_name, gem_version, versions_metadata, is_direct: true)
-      current_version_info = versions_metadata.find { |version| version.number == gem_version }
+    def calculate_dependency_freshness(spec, versions_metadata)
+      current_version_info = versions_metadata.find { |version| version.number == spec.version }
 
       if current_version_info.nil?
-        @logger&.warn("Skipping #{gem_name}: installed version #{gem_version} not found in metadata")
+        @logger&.warn("Skipping #{spec.name}: installed version #{spec.version} not found in metadata")
         return
       end
 
@@ -34,14 +34,14 @@ module LibyearRb
       libyear_in_days = [(latest_release_date - current_release_date).to_i, 0].max
 
       Result.new(
-        name: gem_name,
-        current_version: gem_version,
+        name: spec.name,
+        current_version: spec.version,
         current_version_release_date: current_release_date,
         latest_version: latest_version,
         latest_version_release_date: latest_release_date,
         version_distance: version_distance,
         libyear_in_days: libyear_in_days,
-        is_direct: is_direct
+        is_direct: spec.direct
       )
     end
   end

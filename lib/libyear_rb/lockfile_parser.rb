@@ -58,6 +58,13 @@ module LibyearRb
         end
       end
 
+      direct_names = dependencies.map(&:name)
+      sources = sources.map do |source|
+        source.with(specs: source.specs.map { |spec|
+          spec.with(direct: direct_names.include?(spec.name))
+        })
+      end
+
       Lockfile.new(
         sources: sources,
         platforms: platforms,
