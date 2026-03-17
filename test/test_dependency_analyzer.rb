@@ -32,7 +32,7 @@ class TestDependencyAnalyzer < Minitest::Test
     assert_equal 730, result.libyear_in_days
   end
 
-  def test_returns_nil_when_gem_is_up_to_date
+  def test_returns_result_with_zero_distance_when_gem_is_up_to_date
     analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "7.0.0", direct: true)
     versions_metadata = [
@@ -41,7 +41,8 @@ class TestDependencyAnalyzer < Minitest::Test
 
     result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
 
-    assert_nil result
+    assert_equal 0, result.version_distance
+    assert_equal 0, result.libyear_in_days
   end
 
   def test_returns_nil_when_current_version_not_in_metadata
