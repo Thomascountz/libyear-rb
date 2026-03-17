@@ -1,19 +1,16 @@
 # frozen_string_literal: true
 
-require "gems"
 require "date"
+require "gems"
 require "rubygems"
 
 module LibyearRb
   class GemInfoFetcher
     include GemInfoCacher
 
-    RATE_LIMIT = 10 # https://guides.rubygems.org/rubygems-org-rate-limits/
-    RATE_LIMIT_INTERVAL = 1.0 / RATE_LIMIT
-
-    def initialize
+    def initialize(rate_limiter: -> {})
       @gem_source_clients = {}
-      @last_request_time = Hash.new { |hash, key| hash[key] = Time.now - RATE_LIMIT_INTERVAL }
+      @rate_limiter = rate_limiter
     end
 
     def gem_versions_for(gem_name, remote_host)
@@ -28,8 +25,7 @@ module LibyearRb
 
     def fetch_raw_versions(client, remote_host, gem_name)
       with_cache(remote_host, gem_name) do
-        wait_for_rate_limit(remote_host)
-
+        @rate_limiter.call
         client.versions(gem_name)
       rescue Gems::GemError, Gems::NotFound
         []
@@ -68,13 +64,6 @@ module LibyearRb
 
     def sources
       @sources ||= Gem.sources.each_source.to_a
-    end
-
-    def wait_for_rate_limit(remote_host)
-      now = Time.now
-      elapsed = now - @last_request_time[remote_host]
-      sleep(RATE_LIMIT_INTERVAL - elapsed) if elapsed < RATE_LIMIT_INTERVAL
-      @last_request_time[remote_host] = Time.now
     end
   end
 end
