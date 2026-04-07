@@ -3,16 +3,10 @@
 require_relative "test_helper"
 
 class TestGemInfoCacher < Minitest::Test
-  class CacherHost
-    include LibyearRb::GemInfoCacher
-
-    public :cache_dir
-  end
-
   def test_cache_dir_returns_pathname_when_xdg_cache_home_is_set
     old_value = ENV["XDG_CACHE_HOME"]
     ENV["XDG_CACHE_HOME"] = "/tmp/custom_cache"
-    cacher = CacherHost.new
+    cacher = LibyearRb::GemInfoCacher.new
 
     result = cacher.cache_dir
 
@@ -24,7 +18,7 @@ class TestGemInfoCacher < Minitest::Test
 
   def test_cache_dir_returns_pathname_when_xdg_cache_home_is_not_set
     old_value = ENV.delete("XDG_CACHE_HOME")
-    cacher = CacherHost.new
+    cacher = LibyearRb::GemInfoCacher.new
 
     result = cacher.cache_dir
 
