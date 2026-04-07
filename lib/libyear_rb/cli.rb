@@ -16,23 +16,28 @@ module LibyearRb
       lockfile_contents = read_lockfile
       logger = build_logger
 
-      lockfile_parser = LockfileParser.new
-      gem_info_fetcher_factory = ->(**opts) { GemInfoFetcher.new(**opts) }
-      dependency_analyzer = DependencyAnalyzer.new(logger: logger)
-      formatter = PlaintextFormatter.new
-
-      runner = Runner.new(
-        lockfile_parser: lockfile_parser,
-        gem_info_fetcher_factory: gem_info_fetcher_factory,
-        dependency_analyzer: dependency_analyzer,
-        formatter: formatter,
-        logger: logger
-      )
-
+      runner = build_runner(logger: logger)
       runner.run(lockfile_contents, as_of: @options[:as_of])
     end
 
     private
+
+    def build_runner(logger:)
+      lockfile_parser = LockfileParser.new
+      gem_info_fetcher_factory = ->(**opts) { GemInfoFetcher.new(**opts) }
+      dependency_analyzer = DependencyAnalyzer.new(logger: logger)
+      lockfile_analyzer = LockfileAnalyzer.new(
+        gem_info_fetcher_factory: gem_info_fetcher_factory,
+        dependency_analyzer: dependency_analyzer,
+        logger: logger
+      )
+
+      Runner.new(
+        lockfile_parser: lockfile_parser,
+        lockfile_analyzer: lockfile_analyzer,
+        formatter: PlaintextFormatter.new
+      )
+    end
 
     def build_logger
       return nil unless @options[:verbose]
