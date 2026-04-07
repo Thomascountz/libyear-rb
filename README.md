@@ -73,7 +73,7 @@ To reduce API requests and improve performance, `libyear-rb` caches gem version 
 - Uses `$XDG_CACHE_HOME/libyear-rb/` if `XDG_CACHE_HOME` is set
 - Otherwise defaults to `~/.cache/libyear-rb/`
 
-Cache files are organized by gem source host, so metadata from different gem servers is stored separately.
+Cache files are organized by gem source remote, so same-host sources keep separate metadata.
 
 **To skip the cache:**
 ```bash

@@ -24,10 +24,10 @@ module LibyearRb
 
     def build_runner(logger:)
       lockfile_parser = LockfileParser.new
-      gem_info_fetcher_factory = ->(**opts) { GemInfoFetcher.new(**opts) }
+      gem_info_fetcher = GemInfoFetcher.new
       dependency_analyzer = DependencyAnalyzer.new(logger: logger)
       lockfile_analyzer = LockfileAnalyzer.new(
-        gem_info_fetcher_factory: gem_info_fetcher_factory,
+        gem_info_fetcher: gem_info_fetcher,
         dependency_analyzer: dependency_analyzer,
         logger: logger
       )

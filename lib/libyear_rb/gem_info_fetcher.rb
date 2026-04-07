@@ -3,28 +3,26 @@
 require "date"
 require "gems"
 require "rubygems"
+require "uri"
 
 module LibyearRb
   class GemInfoFetcher
-    def initialize(rate_limiter: -> {}, cache: GemInfoCacher.new)
-      @gem_source_clients = {}
-      @rate_limiter = rate_limiter
+    def initialize(cache: GemInfoCacher.new, sources: Gem.sources.each_source.to_a, client_class: Gems::Client)
       @cache = cache
+      @sources = sources
+      @client_class = client_class
     end
 
-    def gem_versions_for(gem_name, remote_host)
-      client = client_for(remote_host)
-      return [] unless client
-
-      raw_versions = fetch_raw_versions(client, remote_host, gem_name)
+    def gem_versions_for(gem_name, remote:, rate_limiter: nil)
+      raw_versions = fetch_raw_versions(client_for(remote), remote, gem_name, rate_limiter)
       build_versions(gem_name, raw_versions)
     end
 
     private
 
-    def fetch_raw_versions(client, remote_host, gem_name)
-      @cache.fetch(remote: remote_host, gem_name: gem_name) do
-        @rate_limiter.call
+    def fetch_raw_versions(client, remote, gem_name, rate_limiter)
+      @cache.fetch(remote: remote, gem_name: gem_name) do
+        rate_limiter&.acquire
         client.versions(gem_name)
       rescue Gems::GemError, Gems::NotFound
         []
@@ -43,26 +41,41 @@ module LibyearRb
         end
     end
 
-    def client_for(remote_host)
-      return @gem_source_clients[remote_host] if @gem_source_clients.key?(remote_host)
+    def client_for(remote)
+      uri = configured_source_uri_for(remote) || URI.parse(remote)
 
-      client = nil
-      source = sources.find { |gem_source| gem_source.uri.host == remote_host }
-
-      if source
-        uri = source.uri
-        client = Gems::Client.new(
-          host: (uri.origin + uri.request_uri),
-          username: uri.user,
-          password: uri.password
-        )
-      end
-
-      @gem_source_clients[remote_host] = client
+      @client_class.new(
+        host: (uri.origin + uri.request_uri),
+        username: uri.user,
+        password: uri.password
+      )
     end
 
-    def sources
-      @sources ||= Gem.sources.each_source.to_a
+    def configured_source_uri_for(remote)
+      remote_uri = URI.parse(remote)
+
+      exact_match = @sources.find do |source|
+        same_remote?(source.uri, remote_uri)
+      end
+      if exact_match
+        exact_match.uri
+      else
+        host_matches = @sources.select { |source| source.uri.host == remote_uri.host }
+        host_matches.first.uri if host_matches.one?
+      end
+    end
+
+    def same_remote?(left, right)
+      left.scheme == right.scheme &&
+        left.host == right.host &&
+        left.port == right.port &&
+        normalize_path(left.path) == normalize_path(right.path)
+    end
+
+    def normalize_path(path)
+      normalized = path.to_s
+      normalized = "/" if normalized.empty?
+      normalized.end_with?("/") ? normalized : "#{normalized}/"
     end
   end
 end
