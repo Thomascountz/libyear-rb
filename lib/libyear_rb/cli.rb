@@ -17,7 +17,11 @@ module LibyearRb
       logger = build_logger
 
       lockfile_parser = LockfileParser.new
-      gem_info_fetcher_factory = ->(**opts) { GemInfoFetcher.new(**opts) }
+      cache = GemInfoCacher.new(
+        cache_dir: ENV["XDG_CACHE_HOME"] || File.join(Dir.home, ".cache"),
+        skip_cache: ENV["SKIP_CACHE"] == "1"
+      )
+      gem_info_fetcher_factory = ->(**opts) { GemInfoFetcher.new(cache: cache, **opts) }
       dependency_analyzer = DependencyAnalyzer.new(logger: logger)
       formatter = PlaintextFormatter.new
 
