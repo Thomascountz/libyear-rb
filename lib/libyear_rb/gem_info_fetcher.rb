@@ -8,7 +8,7 @@ module LibyearRb
   class GemInfoFetcher
     include GemInfoCacher
 
-    def initialize(rate_limiter: -> {})
+    def initialize(rate_limiter: nil)
       @gem_source_clients = {}
       @rate_limiter = rate_limiter
     end
@@ -25,7 +25,7 @@ module LibyearRb
 
     def fetch_raw_versions(client, remote_host, gem_name)
       with_cache(remote_host, gem_name) do
-        @rate_limiter.call
+        @rate_limiter&.acquire
         client.versions(gem_name)
       rescue Gems::GemError, Gems::NotFound
         []

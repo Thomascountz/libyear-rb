@@ -17,23 +17,14 @@ module LibyearRb
 
     def run(lockfile_contents, as_of: nil)
       threads = []
-      replenishers = []
 
       specs_by_host = specs_by_host(lockfile_contents)
       specs_by_host.each do |remote_host, specs|
         work_queue = Thread::Queue.new
-        token_queue = Thread::SizedQueue.new(RATE_LIMIT)
-        rate_limiter = -> { token_queue.pop }
+        rate_limiter = FixedRateLimiter.new(rate: RATE_LIMIT)
 
         specs.each { |spec| work_queue << spec }
         work_queue.close
-
-        replenishers << Thread.new do
-          loop do
-            sleep(1.0 / RATE_LIMIT)
-            token_queue << :token
-          end
-        end
 
         [specs.size, MAX_WORKERS_PER_HOST].min.times do
           threads << Thread.new do
@@ -54,8 +45,6 @@ module LibyearRb
     rescue Exception # rubocop:disable Lint/RescueException
       threads.each { |t| t.kill unless t == Thread.current }
       raise
-    ensure
-      replenishers.each(&:kill)
     end
 
     private
