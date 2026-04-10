@@ -25,6 +25,10 @@ module LibyearRb
     VERSION_LINE = /^   ?([^ ].+)$/
     BUNDLED_VERSION = /^   ?([^ ].+)$/
 
+    def self.parse(lockfile_content)
+      new.parse(lockfile_content)
+    end
+
     def parse(lockfile_content)
       lines = lockfile_content.lines(chomp: true)
 

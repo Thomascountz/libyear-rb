@@ -7,31 +7,23 @@ module LibyearRb
     MAX_WORKERS_PER_HOST = 10
     RATE_LIMIT = 10 # requests per second per host
 
-    def initialize(lockfile_parser:, gem_info_fetcher_factory:, dependency_analyzer:, formatter:, logger: nil)
-      @lockfile_parser = lockfile_parser
-      @gem_info_fetcher_factory = gem_info_fetcher_factory
-      @dependency_analyzer = dependency_analyzer
+    def initialize(formatter: PlaintextFormatter.new)
       @formatter = formatter
-      @logger = logger
     end
 
     def run(lockfile_contents, as_of: nil)
-      results = []
-      results_mutex = Mutex.new
+      specs_by_host = parse_specs(lockfile_contents)
       threads = []
       replenishers = []
 
-      specs_by_host = specs_by_host(lockfile_contents)
-      specs_by_host.each do |remote_host, specs|
-        work_queue = Thread::Queue.new
+      specs_by_host.each do |host, specs|
         token_queue = Thread::SizedQueue.new(RATE_LIMIT)
         rate_limiter = -> { token_queue.pop }
 
-        # Enqueue specs then close the work queue
+        work_queue = Thread::Queue.new
         specs.each { |spec| work_queue << spec }
         work_queue.close
 
-        # Replenisher: push tokens at RATE_LIMIT/sec
         replenishers << Thread.new do
           loop do
             sleep(1.0 / RATE_LIMIT)
@@ -39,18 +31,21 @@ module LibyearRb
           end
         end
 
-        # Consumers: pop spec, process
         [specs.size, MAX_WORKERS_PER_HOST].min.times do
           threads << Thread.new do
-            fetcher = @gem_info_fetcher_factory.call(rate_limiter: rate_limiter)
+            fetcher = GemInfoFetcher.new(host, rate_limiter: rate_limiter)
+            thread_results = []
             while (spec = work_queue.pop)
-              process_spec(fetcher, spec, remote_host, as_of, results, results_mutex)
+              versions = fetcher.versions_for(spec.name)
+              thread_results << [spec, versions]
             end
+            thread_results
           end
         end
       end
 
-      threads.each(&:value)
+      spec_versions = threads.flat_map(&:value)
+      results = spec_versions.filter_map { |spec, versions| analyze(spec, versions, as_of: as_of) }
       @formatter.generate(results)
       results
     rescue Exception # rubocop:disable Lint/RescueException
@@ -62,31 +57,29 @@ module LibyearRb
 
     private
 
-    def specs_by_host(lockfile_contents)
-      lockfile = @lockfile_parser.parse(lockfile_contents)
+    def parse_specs(lockfile_contents)
+      lockfile = LockfileParser.parse(lockfile_contents)
       lockfile.sources
-        .reject { |source| source.type != :gem || source.remote.nil? }
-        .to_h { |source|
-          remote_host = URI.parse(source.remote).host
-          [remote_host, source.specs.uniq(&:name)]
-        }
+        .select { |source| source.type == :gem && source.remote }
+        .group_by { |source| URI.parse(source.remote).host }
+        .transform_values { |sources| sources.flat_map(&:specs).uniq(&:name) }
     end
 
-    def process_spec(fetcher, spec, remote_host, as_of, results, results_mutex)
-      versions_metadata = fetcher.gem_versions_for(spec.name, remote_host)
-        .reject { |version| as_of && version.created_at > as_of }
+    def analyze(spec, versions, as_of:)
+      filtered = versions
+        .reject { |v| as_of && v.created_at > as_of }
         .sort_by(&:number)
         .reverse
 
-      if versions_metadata.empty?
-        @logger&.warn("Skipping #{spec.name}: no version metadata from #{remote_host}")
-        return
+      if filtered.empty?
+        LibyearRb.logger&.warn("Skipping #{spec.name}: no version metadata")
+        return nil
       end
 
-      result = @dependency_analyzer.calculate_dependency_freshness(spec, versions_metadata)
-      results_mutex.synchronize { results << result } if result
+      DependencyAnalyzer.freshness(spec, filtered)
     rescue => e
-      @logger&.error("Error processing #{spec.name}: #{e.message}")
+      LibyearRb.logger&.error("Error processing #{spec.name}: #{e.message}")
+      nil
     end
   end
 end

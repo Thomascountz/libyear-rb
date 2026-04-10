@@ -2,15 +2,11 @@
 
 module LibyearRb
   class DependencyAnalyzer
-    def initialize(logger: nil)
-      @logger = logger
-    end
-
-    def calculate_dependency_freshness(spec, versions_metadata)
+    def self.freshness(spec, versions_metadata)
       current_version_info = versions_metadata.find { |version| version.number == spec.version }
 
       if current_version_info.nil?
-        @logger&.warn("Skipping #{spec.name}: installed version #{spec.version} not found in metadata")
+        LibyearRb.logger&.warn("Skipping #{spec.name}: installed version #{spec.version} not found in metadata")
         return
       end
 
