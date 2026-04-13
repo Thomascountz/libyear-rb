@@ -36,8 +36,12 @@ module LibyearRb
             fetcher = GemInfoFetcher.new(host, rate_limiter: rate_limiter)
             thread_results = []
             while (spec = work_queue.pop)
-              versions = fetcher.versions_for(spec.name)
-              thread_results << [spec, versions]
+              begin
+                versions = fetcher.versions_for(spec.name)
+                thread_results << [spec, versions]
+              rescue => e
+                LibyearRb.logger.error("Error fetching #{spec.name}: #{e.message}")
+              end
             end
             thread_results
           end
