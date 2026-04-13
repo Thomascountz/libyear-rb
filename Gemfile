@@ -5,6 +5,7 @@ source "https://rubygems.org"
 gemspec
 
 gem "irb"
+gem "benchmark"
 gem "minitest"
 gem "rake"
 gem "rubocop-minitest"
