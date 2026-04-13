@@ -14,31 +14,12 @@ module LibyearRb
 
     def run
       lockfile_contents = read_lockfile
-      logger = build_logger
+      LibyearRb.logger = Logger.new($stderr) if @options[:verbose]
 
-      lockfile_parser = LockfileParser.new
-      gem_info_fetcher_factory = ->(**opts) { GemInfoFetcher.new(**opts) }
-      dependency_analyzer = DependencyAnalyzer.new(logger: logger)
-      formatter = PlaintextFormatter.new
-
-      runner = Runner.new(
-        lockfile_parser: lockfile_parser,
-        gem_info_fetcher_factory: gem_info_fetcher_factory,
-        dependency_analyzer: dependency_analyzer,
-        formatter: formatter,
-        logger: logger
-      )
-
-      runner.run(lockfile_contents, as_of: @options[:as_of])
+      Runner.new.run(lockfile_contents, as_of: @options[:as_of])
     end
 
     private
-
-    def build_logger
-      return nil unless @options[:verbose]
-
-      Logger.new($stderr)
-    end
 
     def parse_options!
       OptionParser.new do |opts|

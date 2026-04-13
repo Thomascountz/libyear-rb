@@ -11,14 +11,16 @@ require_relative "libyear_rb/formatters/plaintext_formatter"
 require_relative "libyear_rb/runner"
 require_relative "libyear_rb/cli"
 
+require "logger"
+
 module LibyearRb
   class Error < StandardError; end
 
   class << self
-    attr_writer :cache
-
-    def cache
-      @cache ||= FileCache.new
-    end
+    attr_accessor :logger
+    attr_accessor :cache
   end
+
+  self.logger = Logger.new(File::NULL)
+  self.cache = FileCache.new
 end

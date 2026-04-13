@@ -3,4 +3,7 @@
 
 require "libyear_rb"
 
+$stdout.sync = true
+$stderr.sync = true
+
 LibyearRb::CLI.new(ARGV).run

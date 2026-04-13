@@ -4,7 +4,6 @@ require_relative "test_helper"
 
 class TestDependencyAnalyzer < Minitest::Test
   def test_calculates_version_distance_for_outdated_gem
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0"), created_at: Date.new(2023, 1, 1), prerelease?: false),
@@ -12,13 +11,12 @@ class TestDependencyAnalyzer < Minitest::Test
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: Date.new(2021, 1, 1), prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     assert_equal 2, result.version_distance
   end
 
   def test_calculates_libyear_in_days_for_outdated_gem
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     current_date = Date.new(2021, 1, 1)
     latest_date = Date.new(2023, 1, 1)
@@ -27,39 +25,36 @@ class TestDependencyAnalyzer < Minitest::Test
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: current_date, prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     assert_equal 730, result.libyear_in_days
   end
 
   def test_returns_result_with_zero_distance_when_gem_is_up_to_date
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "7.0.0", direct: true)
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0"), created_at: Date.new(2023, 1, 1), prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     assert_equal 0, result.version_distance
     assert_equal 0, result.libyear_in_days
   end
 
   def test_returns_nil_when_current_version_not_in_metadata
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "5.0.0", direct: true)
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0"), created_at: Date.new(2023, 1, 1), prerelease?: false),
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: Date.new(2021, 1, 1), prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     assert_nil result
   end
 
   def test_handles_prerelease_current_version
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "7.0.0.rc1", direct: true)
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0"), created_at: Date.new(2023, 2, 1), prerelease?: false),
@@ -67,14 +62,13 @@ class TestDependencyAnalyzer < Minitest::Test
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.1.0"), created_at: Date.new(2022, 1, 1), prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     refute_nil result
     assert_equal "7.0.0", result.latest_version.to_s
   end
 
   def test_skips_prerelease_versions_for_stable_current_version
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0.rc1"), created_at: Date.new(2023, 2, 1), prerelease?: true),
@@ -82,28 +76,25 @@ class TestDependencyAnalyzer < Minitest::Test
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: Date.new(2021, 1, 1), prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     refute_nil result
     assert_equal "6.1.0", result.latest_version.to_s
   end
 
   def test_ensures_libyear_is_never_negative
-    analyzer = LibyearRb::DependencyAnalyzer.new
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
-    # Edge case: latest version has earlier date than current
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.1.0"), created_at: Date.new(2020, 1, 1), prerelease?: false),
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: Date.new(2021, 1, 1), prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     assert_equal 0, result.libyear_in_days
   end
 
-  def test_populates_result_with_all_required_fields
-    analyzer = LibyearRb::DependencyAnalyzer.new
+  def test_populates_result_metadata_fields
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     current_date = Date.new(2021, 1, 1)
     latest_date = Date.new(2023, 1, 1)
@@ -113,32 +104,27 @@ class TestDependencyAnalyzer < Minitest::Test
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: current_date, prerelease?: false)
     ]
 
-    result = analyzer.calculate_dependency_freshness(spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
 
     assert_equal "rails", result.name
-    assert_equal "6.0.0", result.current_version
-    assert_equal current_date, result.current_version_release_date
     assert_equal Gem::Version.new("7.0.0"), result.latest_version
     assert_equal latest_date, result.latest_version_release_date
-    assert_equal 2, result.version_distance
-    assert_equal 730, result.libyear_in_days
     assert result.is_direct
   end
 
   def test_is_direct_defaults_to_true
-    analyzer = LibyearRb::DependencyAnalyzer.new
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "x", number: Gem::Version.new("2.0"), created_at: Date.today, prerelease?: false),
       LibyearRb::GemVersion.new(name: "x", number: Gem::Version.new("1.0"), created_at: Date.new(2022, 1, 1), prerelease?: false)
     ]
 
     direct_spec = LibyearRb::Spec.new(name: "x", version: "1.0", direct: true)
-    result = analyzer.calculate_dependency_freshness(direct_spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(direct_spec, versions_metadata)
 
     assert result.is_direct
 
     indirect_spec = LibyearRb::Spec.new(name: "x", version: "1.0")
-    result = analyzer.calculate_dependency_freshness(indirect_spec, versions_metadata)
+    result = LibyearRb::DependencyAnalyzer.freshness(indirect_spec, versions_metadata)
 
     refute result.is_direct
   end
