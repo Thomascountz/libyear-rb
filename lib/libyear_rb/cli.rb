@@ -13,9 +13,6 @@ module LibyearRb
     end
 
     def run
-      $stdout.sync = true
-      $stderr.sync = true
-
       lockfile_contents = read_lockfile
       LibyearRb.logger = Logger.new($stderr) if @options[:verbose]
 

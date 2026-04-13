@@ -6,7 +6,7 @@ module LibyearRb
       current_version_info = versions_metadata.find { |version| version.number == spec.version }
 
       if current_version_info.nil?
-        LibyearRb.logger&.warn("Skipping #{spec.name}: installed version #{spec.version} not found in metadata")
+        LibyearRb.logger.warn("Skipping #{spec.name}: installed version #{spec.version} not found in metadata")
         return
       end
 

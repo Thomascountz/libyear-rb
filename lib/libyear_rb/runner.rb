@@ -72,13 +72,13 @@ module LibyearRb
         .reverse
 
       if filtered.empty?
-        LibyearRb.logger&.warn("Skipping #{spec.name}: no version metadata")
+        LibyearRb.logger.warn("Skipping #{spec.name}: no version metadata")
         return nil
       end
 
       DependencyAnalyzer.freshness(spec, filtered)
     rescue => e
-      LibyearRb.logger&.error("Error processing #{spec.name}: #{e.message}")
+      LibyearRb.logger.error("Error processing #{spec.name}: #{e.message}")
       nil
     end
   end

@@ -6,10 +6,12 @@ require "pathname"
 module LibyearRb
   class FileCache
     CACHE_EXPIRATION = 86_400 # 24 hours in seconds
+    CACHE_DIR_DEFAULT = ENV.fetch("XDG_CACHE_HOME", File.join(Dir.home, ".cache"))
+    SKIP_CACHE = ENV.fetch("SKIP_CACHE", "0") == "1"
 
     attr_reader :cache_dir
 
-    def initialize(cache_dir: ENV["XDG_CACHE_HOME"] || File.join(Dir.home, ".cache"), skip_cache: ENV["SKIP_CACHE"] == "1")
+    def initialize(cache_dir: CACHE_DIR_DEFAULT, skip_cache: SKIP_CACHE)
       @cache_dir = Pathname.new(cache_dir)
       @skip_cache = skip_cache
     end
@@ -21,13 +23,13 @@ module LibyearRb
       if cache_valid?(path)
         JSON.parse(path.read)
       else
-        yield.tap do |data|
-          return [] unless data
+        data = yield
+        return [] if data.nil? || data.empty?
 
-          path.dirname.mkpath
-          path.write(JSON.dump(data))
-          path.utime(Time.now, Time.now)
-        end
+        path.dirname.mkpath
+        path.write(JSON.dump(data))
+        path.utime(Time.now, Time.now)
+        data
       end
     end
 
