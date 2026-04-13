@@ -7,10 +7,6 @@ module LibyearRb
     MAX_WORKERS_PER_HOST = 10
     RATE_LIMIT = 10 # requests per second per host
 
-    def initialize(formatter: PlaintextFormatter.new)
-      @formatter = formatter
-    end
-
     def run(lockfile_contents, as_of: nil)
       specs_by_host = parse_specs(lockfile_contents)
       threads = []
@@ -49,9 +45,7 @@ module LibyearRb
       end
 
       spec_versions = threads.flat_map(&:value)
-      results = spec_versions.filter_map { |spec, versions| analyze(spec, versions, as_of: as_of) }
-      @formatter.generate(results)
-      results
+      spec_versions.filter_map { |spec, versions| analyze(spec, versions, as_of: as_of) }
     rescue Exception # rubocop:disable Lint/RescueException
       threads.each { |t| t.kill unless t == Thread.current }
       raise

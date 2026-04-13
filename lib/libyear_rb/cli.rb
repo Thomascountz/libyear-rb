@@ -13,10 +13,12 @@ module LibyearRb
     end
 
     def run
-      lockfile_contents = read_lockfile
       LibyearRb.logger = Logger.new($stderr) if @options[:verbose]
 
-      Runner.new.run(lockfile_contents, as_of: @options[:as_of])
+      lockfile_contents = read_lockfile
+      results = Runner.new.run(lockfile_contents, as_of: @options[:as_of])
+
+      PlaintextFormatter.new.generate(results)
     end
 
     private

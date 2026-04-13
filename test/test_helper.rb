@@ -7,8 +7,8 @@ require "minitest/autorun"
 
 class Minitest::Test
   def teardown
-    LibyearRb.logger = Logger.new(File::NULL)
-    LibyearRb.cache = LibyearRb::FileCache.new(skip_cache: true)
+    LibyearRb.logger = nil
+    LibyearRb.cache = nil
     super
   end
 end
