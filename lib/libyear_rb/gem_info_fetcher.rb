@@ -32,7 +32,7 @@ module LibyearRb
     def fetch_raw(gem_name)
       LibyearRb.cache.fetch(@remote_host, gem_name) do
         @rate_limiter.call
-        @client.versions(gem_name)
+        Array(@client.versions(gem_name))
       rescue Gems::GemError, Gems::NotFound
         []
       end
