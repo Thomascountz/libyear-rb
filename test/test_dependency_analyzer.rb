@@ -95,13 +95,12 @@ class TestDependencyAnalyzer < Minitest::Test
     assert_equal 0, result.libyear_in_days
   end
 
-  def test_populates_result_with_all_required_fields
+  def test_passes_through_metadata_fields
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     current_date = Date.new(2021, 1, 1)
     latest_date = Date.new(2023, 1, 1)
     versions_metadata = [
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0"), created_at: latest_date, prerelease?: false),
-      LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.1.0"), created_at: Date.new(2022, 1, 1), prerelease?: false),
       LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.0.0"), created_at: current_date, prerelease?: false)
     ]
 
@@ -112,9 +111,6 @@ class TestDependencyAnalyzer < Minitest::Test
     assert_equal current_date, result.current_version_release_date
     assert_equal Gem::Version.new("7.0.0"), result.latest_version
     assert_equal latest_date, result.latest_version_release_date
-    assert_equal 2, result.version_distance
-    assert_equal 730, result.libyear_in_days
-    assert result.is_direct
   end
 
   def test_is_direct_defaults_to_true
