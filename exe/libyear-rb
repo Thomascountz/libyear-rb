@@ -2,5 +2,9 @@
 # frozen_string_literal: true
 
 require "libyear_rb"
+require "libyear_rb/cli"
+
+$stdout.sync = true
+$stderr.sync = true
 
 LibyearRb::CLI.new(ARGV).run

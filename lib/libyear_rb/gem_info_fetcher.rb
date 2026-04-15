@@ -6,64 +6,47 @@ require "rubygems"
 
 module LibyearRb
   class GemInfoFetcher
-    include GemInfoCacher
-
-    def initialize(rate_limiter: -> {})
-      @gem_source_clients = {}
+    def initialize(remote_host, rate_limiter: -> {})
+      @remote_host = remote_host
       @rate_limiter = rate_limiter
+      source = Gem.sources.each_source.find { |s| s.uri.host == remote_host }
+      if source
+        uri = source.uri
+        @client = Gems::Client.new(
+          host: uri.origin + uri.request_uri,
+          username: uri.user,
+          password: uri.password
+        )
+      end
     end
 
-    def gem_versions_for(gem_name, remote_host)
-      client = client_for(remote_host)
-      return [] unless client
+    def versions_for(gem_name)
+      return [] unless @client
 
-      raw_versions = fetch_raw_versions(client, remote_host, gem_name)
-      build_versions(gem_name, raw_versions)
+      raw = fetch_raw(gem_name)
+      parse_versions(gem_name, raw)
     end
 
     private
 
-    def fetch_raw_versions(client, remote_host, gem_name)
-      with_cache(remote_host, gem_name) do
+    def fetch_raw(gem_name)
+      LibyearRb.cache.fetch(@remote_host, gem_name) do
         @rate_limiter.call
-        client.versions(gem_name)
+        Array(@client.versions(gem_name))
       rescue Gems::GemError, Gems::NotFound
         []
       end
     end
 
-    def build_versions(gem_name, raw_versions)
-      Array(raw_versions)
-        .map do |attributes|
-          GemVersion.new(
-            name: gem_name,
-            number: Gem::Version.new(attributes["number"]),
-            created_at: Date.parse(attributes["created_at"]),
-            prerelease?: attributes["prerelease"]
-          )
-        end
-    end
-
-    def client_for(remote_host)
-      return @gem_source_clients[remote_host] if @gem_source_clients.key?(remote_host)
-
-      client = nil
-      source = sources.find { |gem_source| gem_source.uri.host == remote_host }
-
-      if source
-        uri = source.uri
-        client = Gems::Client.new(
-          host: (uri.origin + uri.request_uri),
-          username: uri.user,
-          password: uri.password
+    def parse_versions(gem_name, raw_versions)
+      Array(raw_versions).map do |attrs|
+        GemVersion.new(
+          name: gem_name,
+          number: Gem::Version.new(attrs["number"]),
+          created_at: Date.parse(attrs["created_at"]),
+          prerelease?: attrs["prerelease"]
         )
       end
-
-      @gem_source_clients[remote_host] = client
-    end
-
-    def sources
-      @sources ||= Gem.sources.each_source.to_a
     end
   end
 end

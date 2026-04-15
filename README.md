@@ -1,9 +1,45 @@
 # libyear-rb
 
-A simple measure of dependency freshness for Ruby apps.
+A measure of dependency freshness for Gemfile.lock. Tells you how out-of-date your dependencies are, in [libyears](https://libyear.com/) by comparing the release date of the locked version to the latest available version.
+
+## Installation
+
+To use the CLI, install the gem:
 
 ```bash
-$ libyear-rb
+gem install libyear-rb
+```
+
+```bash
+mise install gem:libyear-rb
+```
+
+To use programmatically, add to your Gemfile:
+
+```ruby
+gem "libyear-rb"
+```
+
+```ruby
+require "bundler/inline"
+gemfile do
+  source "https://rubygems.org"
+  gem "libyear-rb"
+end
+```
+
+## Usage
+
+### As a CLI
+
+Run `libyear-rb` in a directory with a Gemfile.lock, or provide a path:
+
+```bash
+libyear-rb                      # Uses ./Gemfile.lock
+libyear-rb path/to/Gemfile.lock # Uses specified lockfile
+```
+
+```
 Gem                  Current Current Date Latest   Latest Date Versions Days Years
 .................... ....... ............ ........ ........... ........ .... .....
 addressable          2.8.7   2024-06-21   2.8.8    2025-11-25         1  522  1.43
@@ -13,95 +49,84 @@ System is 4.27 libyears behind
 Total releases behind: 20
 ```
 
-`libyear-rb` tells you how out-of-date your Gemfile.lock is, in libyears (the time between your installed version and the newest version).
-
-## Features
-
-- Analyzes Gemfile.lock to measure dependency freshness
-- Reports libyears (time behind) and version distance (releases behind)
-- Supports any RubyGems.org-compatible gem server (private gem servers, mirrors, etc.)
-- Historical analysis with `--as-of` to see what your dependencies looked like at a specific date
-- Caches API responses to minimize network requests
-
-## Installation
-
-```bash
-gem install libyear-rb
-```
-
-Or add to your Gemfile:
-
-```ruby
-gem "libyear-rb"
-```
-
-## Usage
-
-Run `libyear-rb` in a directory with a Gemfile.lock, or provide a path:
-
-```bash
-libyear-rb                      # Uses ./Gemfile.lock
-libyear-rb path/to/Gemfile.lock # Uses specified lockfile
-```
-
-### Options
+Options:
 
 ```
---as-of DATE    Analyze dependencies as of the given date (YYYY-MM-DD)
---verbose       Run with verbose logs
+--as-of DATE    Only consider versions released before DATE (YYYY-MM-DD)
+--verbose       Run with logs
 --help          Show help
 --version       Show version
 ```
 
-### Historical Analysis
+### As a Library
 
-You can analyze what your dependencies looked like at a specific point in time:
+```ruby
+require "libyear_rb"
 
-```bash
-libyear-rb --as-of 2024-01-01
+results = LibyearRb::Runner.new.run(File.read("Gemfile.lock"))
+
+results.each do |r|
+  puts "#{r.name}: #{r.version_distance} versions, #{r.libyear_in_days} days behind"
+end
+```
+
+Configure the cache or logger before use:
+
+```ruby
+LibyearRb.cache = LibyearRb::FileCache.new(skip_cache: true)
+LibyearRb.logger = Logger.new($stderr)
 ```
 
 ## Private Gem Servers
 
-`libyear-rb` supports any gem server with a RubyGems.org-compatible API. It uses your configured gem sources from `~/.gemrc` or environment, so private gems hosted on servers like Gemfury, Artifactory, or self-hosted solutions work automatically.
+`libyear-rb` supports any gem server with a RubyGems.org-compatible API. It uses your configured gem sources from `~/.gemrc` (`gem sources`) or environment, so private gems hosted on servers like Gemfury, Artifactory, or self-hosted solutions work automatically.
 
 ## Caching
 
 To reduce API requests and improve performance, `libyear-rb` caches gem version metadata for 24 hours.
 
-**Cache location:**
-- Uses `$XDG_CACHE_HOME/libyear-rb/` if `XDG_CACHE_HOME` is set
-- Otherwise defaults to `~/.cache/libyear-rb/`
+Cache location:
+- Gem info is cached under `$XDG_CACHE_HOME/libyear-rb/` (or `~/.cache/libyear-rb/` if `XDG_CACHE_HOME` is not set), with a subdirectory for each gem host.
 
-Cache files are organized by gem source host, so metadata from different gem servers is stored separately.
-
-**To skip the cache:**
+To skip the cache:
 ```bash
 SKIP_CACHE=1 libyear-rb
 ```
 
-**To clear the cache:**
+To clear the cache:
 ```bash
 rm -rf ~/.cache/libyear-rb
 ```
 
-## Alternatives
-
-Other Ruby tools for measuring dependency freshness:
-
-- [libyear-bundler](https://github.com/jaredbeck/libyear-bundler) - The original Ruby libyear implementation. Supports additional metrics like major/minor/patch version deltas and JSON output.
-- [bundler-audit](https://github.com/rubysec/bundler-audit) - Focuses on security vulnerabilities rather than freshness, but useful for dependency health.
-- [bundle outdated](https://bundler.io/man/bundle-outdated.1.html) - Built into Bundler. Shows outdated gems but doesn't calculate libyears.
-
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. 
 
-To install this gem onto your local machine, run `bundle exec rake install`.
+### Commands
+
+```bash
+# Setup development environment
+bin/setup
+
+# Run tests
+rake test
+
+# Run linter
+rake rubocop
+
+# Install gem locally
+bundle exec rake install
+```
 
 ## Acknowledgements
 
 The concept of libyear comes from the technical report "Measuring Dependency Freshness in Software Systems" by J. Cox, E. Bouwers, M. van Eekelen and J. Visser (ICSE 2015).
+
+## Alternatives
+
+- [libyear-bundler](https://github.com/jaredbeck/libyear-bundler) - The original Ruby libyear implementation. Supports additional metrics like major/minor/patch version deltas and JSON output.
+- [bundler-audit](https://github.com/rubysec/bundler-audit) - Focuses on security vulnerabilities rather than freshness.
+- [bundle outdated](https://bundler.io/man/bundle-outdated.1.html) - Built into Bundler. Shows outdated gems but doesn't calculate libyears.
 
 ## License
 
