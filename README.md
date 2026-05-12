@@ -52,10 +52,11 @@ Total releases behind: 20
 Options:
 
 ```
---as-of DATE    Only consider versions released before DATE (YYYY-MM-DD)
---verbose       Run with logs
---help          Show help
---version       Show version
+--as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
+--format FORMATTER  Choose an output formatter (plaintext, curses)
+--verbose           Run with logs
+--help              Show help
+--version           Show version
 ```
 
 ### As a Library
@@ -75,6 +76,19 @@ Configure the cache or logger before use:
 ```ruby
 LibyearRb.cache = LibyearRb::FileCache.new(skip_cache: true)
 LibyearRb.logger = Logger.new($stderr)
+```
+
+### Formatters
+
+Two output formatters are available:
+
+- `plaintext` (default) — prints a static table to stdout.
+- `curses` — launches an interactive, sortable TUI table. Navigate columns with the left/right arrow keys, scroll rows with up/down, toggle sort direction with `s`, and quit with `q`. Requires the [`curses`](https://rubygems.org/gems/curses) gem, which you can install separately with `gem install curses`.
+
+Select a formatter with `--format` (or `-f`):
+
+```bash
+libyear-rb --format curses
 ```
 
 ## Private Gem Servers
@@ -100,7 +114,7 @@ rm -rf ~/.cache/libyear-rb
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. 
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests.
 
 ### Commands
 

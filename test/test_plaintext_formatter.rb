@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "libyear_rb/formatters/plaintext_formatter"
 require "stringio"
 
 class TestPlaintextFormatter < Minitest::Test

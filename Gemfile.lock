@@ -9,6 +9,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.3)
+    curses (1.6.0)
     date (3.5.1)
     drb (2.2.3)
     erb (6.0.3)
@@ -95,6 +96,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  curses
   irb
   libyear-rb!
   minitest
