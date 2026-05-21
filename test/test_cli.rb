@@ -3,6 +3,7 @@
 require_relative "test_helper"
 require "libyear_rb/cli"
 require "libyear_rb/formatters/plaintext_formatter"
+require "libyear_rb/formatters/json_formatter"
 
 class TestCLI < Minitest::Test
   def test_default_options
@@ -18,15 +19,15 @@ class TestCLI < Minitest::Test
   end
 
   def test_format_option
-    parsed_options = parse_options(["--format", "plaintext"])
+    parsed_options = parse_options(["--format", "json"])
 
-    assert_equal LibyearRb::PlaintextFormatter, parsed_options[:formatter]
+    assert_equal LibyearRb::JsonFormatter, parsed_options[:formatter]
   end
 
   def test_format_short_flag
-    parsed_options = parse_options(["-f", "plaintext"])
+    parsed_options = parse_options(["-f", "json"])
 
-    assert_equal LibyearRb::PlaintextFormatter, parsed_options[:formatter]
+    assert_equal LibyearRb::JsonFormatter, parsed_options[:formatter]
   end
 
   def test_format_unknown_value
@@ -75,13 +76,13 @@ class TestCLI < Minitest::Test
   end
 
   def test_positional_argument_with_options
-    cli = LibyearRb::CLI.new(["path/to/Gemfile.lock", "--verbose", "-f", "plaintext"])
+    cli = LibyearRb::CLI.new(["path/to/Gemfile.lock", "--verbose", "-f", "json"])
     argv = cli.instance_variable_get(:@argv)
     parsed_options = cli.instance_variable_get(:@options)
 
     assert parsed_options[:verbose]
     assert_equal ["path/to/Gemfile.lock"], argv
-    assert_equal LibyearRb::PlaintextFormatter, parsed_options[:formatter]
+    assert_equal LibyearRb::JsonFormatter, parsed_options[:formatter]
   end
 
   private

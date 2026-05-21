@@ -8,11 +8,15 @@ class TestFormatter < Minitest::Test
     assert_equal LibyearRb::PlaintextFormatter, LibyearRb::Formatter.for("plaintext")
   end
 
+  def test_returns_json_formatter
+    assert_equal LibyearRb::JsonFormatter, LibyearRb::Formatter.for("json")
+  end
+
   def test_raises_for_unknown_formatter
     error = assert_raises(ArgumentError) { LibyearRb::Formatter.for("nonexistent") }
 
-    assert_includes error.message, "Unknown formatter"
-    assert_includes error.message, "nonexistent"
-    assert_includes error.message, "plaintext"
+    assert_equal \
+      %(Unknown formatter: "nonexistent". Available formatters: plaintext, json.),
+      error.message
   end
 end

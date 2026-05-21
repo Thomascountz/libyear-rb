@@ -2,7 +2,7 @@
 
 module LibyearRb
   class Formatter
-    NAMES = %w[plaintext].freeze
+    NAMES = %w[plaintext json].freeze
 
     class << self
       def for(name)
@@ -10,6 +10,9 @@ module LibyearRb
         when "plaintext"
           require "libyear_rb/formatters/plaintext_formatter"
           PlaintextFormatter
+        when "json"
+          require "libyear_rb/formatters/json_formatter"
+          JsonFormatter
         else
           raise ArgumentError, "Unknown formatter: #{name.inspect}. Available formatters: #{NAMES.join(", ")}."
         end
