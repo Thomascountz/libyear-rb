@@ -52,10 +52,20 @@ Total releases behind: 20
 Options:
 
 ```
---as-of DATE    Only consider versions released before DATE (YYYY-MM-DD)
---verbose       Run with logs
---help          Show help
---version       Show version
+--as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
+--format FORMATTER  Choose an output formatter (plaintext, json)
+--verbose           Run with logs
+--help              Show help
+--version           Show version
+```
+
+#### Formatters
+
+- `plaintext` (default) — prints a human-readable table to stdout, listing only outdated gems.
+- `json` — prints a machine-readable JSON document to stdout, listing every gem along with a summary.
+
+```bash
+libyear-rb --format json
 ```
 
 ### As a Library
