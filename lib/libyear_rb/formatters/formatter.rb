@@ -19,8 +19,9 @@ module LibyearRb
       end
     end
 
-    def initialize(io: $stdout)
+    def initialize(io: $stdout, indirect: true)
       @io = io
+      @indirect = indirect
     end
 
     def generate(results)

@@ -104,6 +104,44 @@ class TestPlaintextFormatter < Minitest::Test
     refute_includes output.string, "current"
   end
 
+  def test_hides_indirect_dependencies_when_indirect_is_false
+    output = StringIO.new
+    formatter = LibyearRb::PlaintextFormatter.new(io: output, indirect: false)
+    results = [
+      LibyearRb::Result.new(
+        name: "direct-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 3,
+        libyear_in_days: 200,
+        is_direct: true
+      ),
+      LibyearRb::Result.new(
+        name: "indirect-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 5,
+        libyear_in_days: 500,
+        is_direct: false
+      )
+    ]
+
+    formatter.generate(results)
+
+    expected = <<~OUTPUT
+                Gem    Current    Current Date    Latest    Latest Date    Versions    Days    Years
+      ............. .......... ............... ......... .............. ........... ....... ........
+         direct-gem      1.0.0      2020-01-01     2.0.0     2021-01-01           3     200     0.55
+      System is 1.92 libyears behind
+      Total releases behind: 8
+    OUTPUT
+    assert_equal expected, output.string
+  end
+
   def test_outputs_nothing_when_empty
     output = StringIO.new
     formatter = LibyearRb::PlaintextFormatter.new(io: output)

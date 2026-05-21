@@ -54,6 +54,7 @@ Options:
 ```
 --as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
 --format FORMATTER  Choose an output formatter (plaintext, json)
+--[no-]indirect     Include indirect dependencies in output (default: true)
 --verbose           Run with logs
 --help              Show help
 --version           Show version

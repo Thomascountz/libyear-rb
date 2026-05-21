@@ -9,7 +9,19 @@ class TestCLI < Minitest::Test
   def test_default_options
     parsed_options = parse_options([])
 
-    assert_equal({formatter: LibyearRb::PlaintextFormatter}, parsed_options)
+    assert_equal({formatter: LibyearRb::PlaintextFormatter, indirect: true}, parsed_options)
+  end
+
+  def test_no_indirect_flag
+    parsed_options = parse_options(["--no-indirect"])
+
+    refute parsed_options[:indirect]
+  end
+
+  def test_indirect_flag
+    parsed_options = parse_options(["--indirect"])
+
+    assert parsed_options[:indirect]
   end
 
   def test_verbose_flag

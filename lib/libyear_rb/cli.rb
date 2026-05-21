@@ -8,7 +8,7 @@ module LibyearRb
   class CLI
     def initialize(argv = ARGV)
       @argv = argv.dup
-      @options = {formatter: Formatter.for("plaintext")}
+      @options = {formatter: Formatter.for("plaintext"), indirect: true}
       parse_options!
     end
 
@@ -18,7 +18,7 @@ module LibyearRb
       lockfile_contents = read_lockfile
       results = Runner.new.run(lockfile_contents, as_of: @options[:as_of])
 
-      @options.fetch(:formatter).new.generate(results)
+      @options.fetch(:formatter).new(indirect: @options.fetch(:indirect)).generate(results)
     end
 
     private
@@ -51,6 +51,10 @@ module LibyearRb
         rescue ArgumentError => e
           warn e.message
           exit 1
+        end
+
+        opts.on("--[no-]indirect", "Include indirect dependencies in output (default: true).") do |value|
+          @options[:indirect] = value
         end
 
         opts.on("--verbose", "Run with verbose logs") do

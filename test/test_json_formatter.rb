@@ -91,6 +91,40 @@ class TestJsonFormatter < Minitest::Test
     assert_in_delta 0.0, parsed["summary"]["libyears_behind"], 0.001
   end
 
+  def test_hides_indirect_dependencies_when_indirect_is_false
+    output = StringIO.new
+    formatter = LibyearRb::JsonFormatter.new(io: output, indirect: false)
+    results = [
+      LibyearRb::Result.new(
+        name: "direct-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 3,
+        libyear_in_days: 200,
+        is_direct: true
+      ),
+      LibyearRb::Result.new(
+        name: "indirect-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 5,
+        libyear_in_days: 500,
+        is_direct: false
+      )
+    ]
+
+    formatter.generate(results)
+    parsed = JSON.parse(output.string)
+
+    assert_equal ["direct-gem"], parsed["gems"].map { |g| g["name"] }
+    assert_in_delta 1.92, parsed["summary"]["libyears_behind"], 0.01
+    assert_equal 8, parsed["summary"]["total_releases_behind"]
+  end
+
   def test_outputs_empty_collection_when_no_results
     output = StringIO.new
     formatter = LibyearRb::JsonFormatter.new(io: output)

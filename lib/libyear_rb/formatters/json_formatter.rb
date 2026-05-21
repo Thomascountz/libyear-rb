@@ -8,8 +8,10 @@ module LibyearRb
       total_days = results.sum { |r| r.libyear_in_days || 0 }
       total_versions = results.sum { |r| r.version_distance || 0 }
 
+      visible_results = @indirect ? results : results.select(&:is_direct)
+
       payload = {
-        gems: results.sort_by(&:name).map { |result| gem_hash(result) },
+        gems: visible_results.sort_by(&:name).map { |result| gem_hash(result) },
         summary: {
           libyears_behind: (total_days / 365.0).round(2),
           total_releases_behind: total_versions
