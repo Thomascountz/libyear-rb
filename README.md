@@ -54,10 +54,22 @@ Options:
 ```
 --as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
 --format FORMATTER  Choose an output formatter (plaintext, json)
+--sort SPEC         Sort by comma-separated columns (default: libyear,name)
 --[no-]indirect     Include indirect dependencies in output (default: true)
 --verbose           Run with logs
 --help              Show help
 --version           Show version
+```
+
+#### Sorting
+
+The `--sort` flag accepts a comma-separated list of columns. Each column has a
+fixed direction: `name` is ascending, while `latest-date`, `versions`, and
+`libyear` are descending. Later columns are used to break ties.
+
+```bash
+libyear-rb --sort versions,name   # most releases behind first, then by name
+libyear-rb --sort libyear         # most libyears behind first
 ```
 
 #### Formatters

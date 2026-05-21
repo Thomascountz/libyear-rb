@@ -33,7 +33,7 @@ class TestPlaintextFormatter < Minitest::Test
     assert_equal expected, output.string
   end
 
-  def test_formats_multiple_outdated_gems_sorted_by_name
+  def test_renders_results_in_input_order
     output = StringIO.new
     formatter = LibyearRb::PlaintextFormatter.new(io: output)
     results = [
@@ -64,8 +64,8 @@ class TestPlaintextFormatter < Minitest::Test
     expected = <<~OUTPUT
                   Gem    Current    Current Date    Latest    Latest Date    Versions    Days    Years
       ............... .......... ............... ......... .............. ........... ....... ........
-         activerecord      6.0.0      2020-01-01     7.0.0     2021-01-01           8     730     2.00
              zeitwerk      2.5.0      2020-01-01     2.6.0     2021-01-01           3     180     0.49
+         activerecord      6.0.0      2020-01-01     7.0.0     2021-01-01           8     730     2.00
       System is 2.49 libyears behind
       Total releases behind: 11
     OUTPUT

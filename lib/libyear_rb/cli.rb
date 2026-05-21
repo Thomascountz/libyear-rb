@@ -8,7 +8,11 @@ module LibyearRb
   class CLI
     def initialize(argv = ARGV)
       @argv = argv.dup
-      @options = {formatter: Formatter.for("plaintext"), indirect: true}
+      @options = {
+        formatter: Formatter.for("plaintext"),
+        indirect: true,
+        sorters: Sorter.parse(Sorter::DEFAULT_SPEC)
+      }
       parse_options!
     end
 
@@ -17,8 +21,9 @@ module LibyearRb
 
       lockfile_contents = read_lockfile
       results = Runner.new.run(lockfile_contents, as_of: @options[:as_of])
+      sorted_results = Sorter.sort(results, @options.fetch(:sorters))
 
-      @options.fetch(:formatter).new(indirect: @options.fetch(:indirect)).generate(results)
+      @options.fetch(:formatter).new(indirect: @options.fetch(:indirect)).generate(sorted_results)
     end
 
     private
@@ -49,6 +54,14 @@ module LibyearRb
         opts.on("-f", "--format FORMATTER", "Choose an output formatter (#{Formatter::NAMES.join(", ")}).") do |name|
           @options[:formatter] = Formatter.for(name)
         rescue ArgumentError => e
+          warn e.message
+          exit 1
+        end
+
+        opts.on("--sort SPEC",
+          "Sort by comma-separated columns (#{Sorter::COLUMNS.keys.join(", ")}) (default: #{Sorter::DEFAULT_SPEC}).") do |spec|
+          @options[:sorters] = Sorter.parse(spec)
+        rescue Sorter::InvalidSpec => e
           warn e.message
           exit 1
         end

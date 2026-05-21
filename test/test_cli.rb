@@ -9,7 +9,9 @@ class TestCLI < Minitest::Test
   def test_default_options
     parsed_options = parse_options([])
 
-    assert_equal({formatter: LibyearRb::PlaintextFormatter, indirect: true}, parsed_options)
+    assert_equal LibyearRb::PlaintextFormatter, parsed_options[:formatter]
+    assert parsed_options[:indirect]
+    assert_equal LibyearRb::Sorter.parse(LibyearRb::Sorter::DEFAULT_SPEC), parsed_options[:sorters]
   end
 
   def test_no_indirect_flag
@@ -22,6 +24,22 @@ class TestCLI < Minitest::Test
     parsed_options = parse_options(["--indirect"])
 
     assert parsed_options[:indirect]
+  end
+
+  def test_sort_option
+    parsed_options = parse_options(["--sort", "versions,name"])
+
+    assert_equal(
+      [LibyearRb::Sorter::COLUMNS.fetch("versions"), LibyearRb::Sorter::COLUMNS.fetch("name")],
+      parsed_options[:sorters]
+    )
+  end
+
+  def test_sort_invalid_column
+    capture_io do
+      error = assert_raises(SystemExit) { parse_options(["--sort", "bogus"]) }
+      assert_equal 1, error.status
+    end
   end
 
   def test_verbose_flag

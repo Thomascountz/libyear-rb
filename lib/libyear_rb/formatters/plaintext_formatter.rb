@@ -17,9 +17,7 @@ module LibyearRb
 
       return if visible_results.empty?
 
-      rows = visible_results.sort_by(&:name).map do |result|
-        row_for(result)
-      end
+      rows = visible_results.map { |result| row_for(result) }
 
       widths = calculate_widths(rows)
       @io.puts format_row(HEADERS, widths)

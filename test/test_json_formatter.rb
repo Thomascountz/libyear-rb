@@ -6,7 +6,7 @@ require "json"
 require "stringio"
 
 class TestJsonFormatter < Minitest::Test
-  def test_formats_outdated_and_current_gems_sorted_by_name
+  def test_renders_results_in_input_order
     output = StringIO.new
     formatter = LibyearRb::JsonFormatter.new(io: output)
     results = [
@@ -38,16 +38,6 @@ class TestJsonFormatter < Minitest::Test
       {
         "gems": [
           {
-            "name": "activerecord",
-            "current_version": "6.0.0",
-            "current_version_release_date": "2020-01-01",
-            "latest_version": "7.0.0",
-            "latest_version_release_date": "2021-01-01",
-            "version_distance": 8,
-            "libyear_in_days": 730,
-            "direct": false
-          },
-          {
             "name": "zeitwerk",
             "current_version": "2.5.0",
             "current_version_release_date": "2020-01-01",
@@ -56,6 +46,16 @@ class TestJsonFormatter < Minitest::Test
             "version_distance": 3,
             "libyear_in_days": 180,
             "direct": true
+          },
+          {
+            "name": "activerecord",
+            "current_version": "6.0.0",
+            "current_version_release_date": "2020-01-01",
+            "latest_version": "7.0.0",
+            "latest_version_release_date": "2021-01-01",
+            "version_distance": 8,
+            "libyear_in_days": 730,
+            "direct": false
           }
         ],
         "summary": {

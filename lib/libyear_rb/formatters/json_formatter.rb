@@ -11,7 +11,7 @@ module LibyearRb
       visible_results = @indirect ? results : results.select(&:is_direct)
 
       payload = {
-        gems: visible_results.sort_by(&:name).map { |result| gem_hash(result) },
+        gems: visible_results.map { |result| gem_hash(result) },
         summary: {
           libyears_behind: (total_days / 365.0).round(2),
           total_releases_behind: total_versions
