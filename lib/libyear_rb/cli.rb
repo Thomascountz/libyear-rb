@@ -8,7 +8,7 @@ module LibyearRb
   class CLI
     def initialize(argv = ARGV)
       @argv = argv.dup
-      @options = {}
+      @options = {formatter: Formatter.for("plaintext")}
       parse_options!
     end
 
@@ -18,7 +18,7 @@ module LibyearRb
       lockfile_contents = read_lockfile
       results = Runner.new.run(lockfile_contents, as_of: @options[:as_of])
 
-      PlaintextFormatter.new.generate(results)
+      @options.fetch(:formatter).new.generate(results)
     end
 
     private
@@ -43,6 +43,13 @@ module LibyearRb
           @options[:as_of] = Date.parse(date)
         rescue ArgumentError
           warn "Invalid date format. Please use YYYY-MM-DD."
+          exit 1
+        end
+
+        opts.on("-f", "--format FORMATTER", "Choose an output formatter (#{Formatter::NAMES.join(", ")}).") do |name|
+          @options[:formatter] = Formatter.for(name)
+        rescue ArgumentError => e
+          warn e.message
           exit 1
         end
 

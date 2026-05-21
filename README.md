@@ -52,10 +52,11 @@ Total releases behind: 20
 Options:
 
 ```
---as-of DATE    Only consider versions released before DATE (YYYY-MM-DD)
---verbose       Run with logs
---help          Show help
---version       Show version
+--as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
+--format FORMATTER  Choose an output formatter (plaintext)
+--verbose           Run with logs
+--help              Show help
+--version           Show version
 ```
 
 ### As a Library

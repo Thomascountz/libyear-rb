@@ -2,6 +2,20 @@
 
 module LibyearRb
   class Formatter
+    NAMES = %w[plaintext].freeze
+
+    class << self
+      def for(name)
+        case name
+        when "plaintext"
+          require "libyear_rb/formatters/plaintext_formatter"
+          PlaintextFormatter
+        else
+          raise ArgumentError, "Unknown formatter: #{name.inspect}. Available formatters: #{NAMES.join(", ")}."
+        end
+      end
+    end
+
     def initialize(io: $stdout)
       @io = io
     end
