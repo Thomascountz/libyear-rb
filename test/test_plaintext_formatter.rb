@@ -33,7 +33,7 @@ class TestPlaintextFormatter < Minitest::Test
     assert_equal expected, output.string
   end
 
-  def test_formats_multiple_outdated_gems_sorted_by_name
+  def test_renders_results_in_input_order
     output = StringIO.new
     formatter = LibyearRb::PlaintextFormatter.new(io: output)
     results = [
@@ -64,8 +64,8 @@ class TestPlaintextFormatter < Minitest::Test
     expected = <<~OUTPUT
                   Gem    Current    Current Date    Latest    Latest Date    Versions    Days    Years
       ............... .......... ............... ......... .............. ........... ....... ........
-         activerecord      6.0.0      2020-01-01     7.0.0     2021-01-01           8     730     2.00
              zeitwerk      2.5.0      2020-01-01     2.6.0     2021-01-01           3     180     0.49
+         activerecord      6.0.0      2020-01-01     7.0.0     2021-01-01           8     730     2.00
       System is 2.49 libyears behind
       Total releases behind: 11
     OUTPUT
@@ -102,6 +102,44 @@ class TestPlaintextFormatter < Minitest::Test
 
     assert_includes output.string, "outdated"
     refute_includes output.string, "current"
+  end
+
+  def test_hides_indirect_dependencies_when_indirect_is_false
+    output = StringIO.new
+    formatter = LibyearRb::PlaintextFormatter.new(io: output, indirect: false)
+    results = [
+      LibyearRb::Result.new(
+        name: "direct-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 3,
+        libyear_in_days: 200,
+        is_direct: true
+      ),
+      LibyearRb::Result.new(
+        name: "indirect-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 5,
+        libyear_in_days: 500,
+        is_direct: false
+      )
+    ]
+
+    formatter.generate(results)
+
+    expected = <<~OUTPUT
+                Gem    Current    Current Date    Latest    Latest Date    Versions    Days    Years
+      ............. .......... ............... ......... .............. ........... ....... ........
+         direct-gem      1.0.0      2020-01-01     2.0.0     2021-01-01           3     200     0.55
+      System is 1.92 libyears behind
+      Total releases behind: 8
+    OUTPUT
+    assert_equal expected, output.string
   end
 
   def test_outputs_nothing_when_empty

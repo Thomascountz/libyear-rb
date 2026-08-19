@@ -6,7 +6,7 @@ require "json"
 require "stringio"
 
 class TestJsonFormatter < Minitest::Test
-  def test_formats_outdated_and_current_gems_sorted_by_name
+  def test_renders_results_in_input_order
     output = StringIO.new
     formatter = LibyearRb::JsonFormatter.new(io: output)
     results = [
@@ -38,16 +38,6 @@ class TestJsonFormatter < Minitest::Test
       {
         "gems": [
           {
-            "name": "activerecord",
-            "current_version": "6.0.0",
-            "current_version_release_date": "2020-01-01",
-            "latest_version": "7.0.0",
-            "latest_version_release_date": "2021-01-01",
-            "version_distance": 8,
-            "libyear_in_days": 730,
-            "direct": false
-          },
-          {
             "name": "zeitwerk",
             "current_version": "2.5.0",
             "current_version_release_date": "2020-01-01",
@@ -56,6 +46,16 @@ class TestJsonFormatter < Minitest::Test
             "version_distance": 3,
             "libyear_in_days": 180,
             "direct": true
+          },
+          {
+            "name": "activerecord",
+            "current_version": "6.0.0",
+            "current_version_release_date": "2020-01-01",
+            "latest_version": "7.0.0",
+            "latest_version_release_date": "2021-01-01",
+            "version_distance": 8,
+            "libyear_in_days": 730,
+            "direct": false
           }
         ],
         "summary": {
@@ -89,6 +89,40 @@ class TestJsonFormatter < Minitest::Test
     assert_equal ["current"], parsed["gems"].map { |g| g["name"] }
     assert_equal 0, parsed["summary"]["total_releases_behind"]
     assert_in_delta 0.0, parsed["summary"]["libyears_behind"], 0.001
+  end
+
+  def test_hides_indirect_dependencies_when_indirect_is_false
+    output = StringIO.new
+    formatter = LibyearRb::JsonFormatter.new(io: output, indirect: false)
+    results = [
+      LibyearRb::Result.new(
+        name: "direct-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 3,
+        libyear_in_days: 200,
+        is_direct: true
+      ),
+      LibyearRb::Result.new(
+        name: "indirect-gem",
+        current_version: "1.0.0",
+        current_version_release_date: Date.new(2020, 1, 1),
+        latest_version: "2.0.0",
+        latest_version_release_date: Date.new(2021, 1, 1),
+        version_distance: 5,
+        libyear_in_days: 500,
+        is_direct: false
+      )
+    ]
+
+    formatter.generate(results)
+    parsed = JSON.parse(output.string)
+
+    assert_equal ["direct-gem"], parsed["gems"].map { |g| g["name"] }
+    assert_in_delta 1.92, parsed["summary"]["libyears_behind"], 0.01
+    assert_equal 8, parsed["summary"]["total_releases_behind"]
   end
 
   def test_outputs_empty_collection_when_no_results

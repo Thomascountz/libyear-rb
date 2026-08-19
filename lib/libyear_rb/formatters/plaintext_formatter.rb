@@ -7,23 +7,23 @@ module LibyearRb
     HEADERS = ["Gem", "Current", "Current Date", "Latest", "Latest Date", "Versions", "Days", "Years"].freeze
 
     def generate(results)
-      outdated_results = results.reject do |result|
+      total_days = results.sum { |r| r.libyear_in_days || 0 }
+      total_versions = results.sum { |r| r.version_distance || 0 }
+
+      visible_results = @indirect ? results : results.select(&:is_direct)
+      visible_results = visible_results.reject do |result|
         result.version_distance.zero?
       end
 
-      return if outdated_results.empty?
+      return if visible_results.empty?
 
-      rows = outdated_results.sort_by(&:name).map do |result|
-        row_for(result)
-      end
+      rows = visible_results.map { |result| row_for(result) }
 
       widths = calculate_widths(rows)
       @io.puts format_row(HEADERS, widths)
       @io.puts divider(widths)
       rows.each { |row| @io.puts format_row(row, widths) }
 
-      total_days = results.sum { |r| r.libyear_in_days || 0 }
-      total_versions = results.sum { |r| r.version_distance || 0 }
       @io.puts "System is %.2f libyears behind" % (total_days / 365.0)
       @io.puts "Total releases behind: #{total_versions}"
     end
