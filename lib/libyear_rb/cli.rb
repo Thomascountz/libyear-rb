@@ -51,7 +51,7 @@ module LibyearRb
           exit 1
         end
 
-        opts.on("-f", "--format FORMATTER", "Choose an output formatter (#{Formatter::NAMES.join(", ")}).") do |name|
+        opts.on("-f", "--format FORMATTER", "Choose an output formatter (#{Formatter::NAMES.join(", ")}) (default: plaintext).") do |name|
           @options[:formatter] = Formatter.for(name)
         rescue ArgumentError => e
           warn e.message
@@ -66,7 +66,7 @@ module LibyearRb
           exit 1
         end
 
-        opts.on("--[no-]indirect", "Include indirect dependencies in output (default: true).") do |value|
+        opts.on("--[no-]indirect", "Include indirect dependencies in output (on by default).") do |value|
           @options[:indirect] = value
         end
 

@@ -53,9 +53,9 @@ Options:
 
 ```
 --as-of DATE        Only consider versions released before DATE (YYYY-MM-DD)
---format FORMATTER  Choose an output formatter (plaintext, json)
+--format FORMATTER  Choose an output formatter (plaintext, json) (default: plaintext)
 --sort SPEC         Sort by comma-separated columns (default: libyear,name)
---[no-]indirect     Include indirect dependencies in output (default: true)
+--[no-]indirect     Include indirect dependencies in output (on by default)
 --verbose           Run with logs
 --help              Show help
 --version           Show version
