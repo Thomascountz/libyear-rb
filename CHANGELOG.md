@@ -2,7 +2,26 @@
 
 ## [Unreleased]
 
-## [0.1.0] - 2025-01-09
+## [0.2.0] - 2026-08-19
+
+### Added
+
+- The report can now be generated in JSON with the `--format json` flag
+- The `--sort` flag orders the output by column values (default: `libyear,name`)
+- The `--[no-]indirect` flag includes (default) or excludes indirect dependencies in the output
+- A library API (`LibyearRb::Runner`) has been extracted for programmatic/scripting use
+
+### Changed
+
+- All results are now sent to formatters, so the report can include both outdated and up-to-date gems
+- Gem version metadata is fetched in parallel with per-host worker pools
+
+### Fixed
+
+- When `XDG_CACHE_HOME` is set, the cache directory resolves as a `Pathname` instead of a `String`
+- Fetch failures are rescued per dependency, so one error no longer crashes the report
+
+## [0.1.0] - 2026-01-09
 
 ### Added
 
