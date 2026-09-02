@@ -10,11 +10,17 @@ module LibyearRb
         return
       end
 
-      latest_version_info = if current_version_info.prerelease?
-        versions_metadata.first
+      # When the installed version is a prerelease, compare against every
+      # release (including prereleases). Otherwise, ignore prereleases so a
+      # beta published above the latest stable release does not inflate the
+      # version count or freshness gap.
+      comparable_versions = if current_version_info.prerelease?
+        versions_metadata
       else
-        versions_metadata.find { |version| !version.prerelease? }
+        versions_metadata.reject(&:prerelease?)
       end
+
+      latest_version_info = comparable_versions.first
 
       latest_version = latest_version_info.number
       current_version = current_version_info.number
@@ -22,7 +28,7 @@ module LibyearRb
       latest_release_date = latest_version_info.created_at
       current_release_date = current_version_info.created_at
 
-      version_distance = versions_metadata.index { |version| version.number == current_version }
+      version_distance = comparable_versions.index { |version| version.number == current_version }
       libyear_in_days = [(latest_release_date - current_release_date).to_i, 0].max
 
       Result.new(

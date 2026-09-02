@@ -82,6 +82,20 @@ class TestDependencyAnalyzer < Minitest::Test
     assert_equal "6.1.0", result.latest_version.to_s
   end
 
+  def test_ignores_prereleases_when_counting_version_distance_for_stable_current_version
+    spec = LibyearRb::Spec.new(name: "rails", version: "6.1.0", direct: true)
+    versions_metadata = [
+      LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("7.0.0.rc1"), created_at: Date.new(2023, 2, 1), prerelease?: true),
+      LibyearRb::GemVersion.new(name: "rails", number: Gem::Version.new("6.1.0"), created_at: Date.new(2022, 1, 1), prerelease?: false)
+    ]
+
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
+
+    assert_equal 0, result.version_distance
+    assert_equal 0, result.libyear_in_days
+    assert_equal "6.1.0", result.latest_version.to_s
+  end
+
   def test_ensures_libyear_is_never_negative
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     # Edge case: latest version has earlier date than current
