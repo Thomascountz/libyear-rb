@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-02
+
+### Fixed
+
+- Prereleases are now excluded from the version distance and freshness gap when the installed version is stable, so a beta published above the latest stable release no longer inflates the report.
+
 ## [0.2.0] - 2026-08-19
 
 ### Added
