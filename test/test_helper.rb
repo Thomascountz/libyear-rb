@@ -4,6 +4,7 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "libyear_rb"
 
 require "minitest/autorun"
+require "minitest/rg"
 
 class Minitest::Test
   def teardown
