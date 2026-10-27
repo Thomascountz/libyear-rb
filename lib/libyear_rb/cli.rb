@@ -76,7 +76,7 @@ module LibyearRb
 
         opts.separator ""
         opts.separator "Environment variables:"
-        opts.separator "  SKIP_CACHE=1    Disable reading to and writing from the libyear-rb cache"
+        opts.separator "  SKIP_CACHE=1    Disable writing to and reading from the libyear-rb cache"
       end.parse!(@argv)
     end
 
