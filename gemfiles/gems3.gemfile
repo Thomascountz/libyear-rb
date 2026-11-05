@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+gemspec path: ".."
+
+eval_gemfile "common.rb"
+
+gem "gems", "~> 3.0.0"

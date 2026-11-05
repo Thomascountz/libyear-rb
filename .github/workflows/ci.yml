@@ -5,19 +5,41 @@ on:
   pull_request:
 jobs:
   testing:
-    name: Testing
+    name: Testing (${{ matrix.gemfile }})
     runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        gemfile:
+          - gems1
+          - gems2
+          - gems3
+    env:
+      BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
       - run: bundle exec rake test
+  did_all_tests_pass:
+    name: Testing
+    needs: testing
+    if: always()
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - run: |
+          if ${{ needs.testing.result == 'success' }}
+          then
+            echo "All tests pass"
+          else
+            echo "Some tests failed"
+            false
+          fi
   linting:
     name: Linting
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true

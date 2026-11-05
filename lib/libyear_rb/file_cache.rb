@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "json"
-require "pathname"
 
 module LibyearRb
   class FileCache
