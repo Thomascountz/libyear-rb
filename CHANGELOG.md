@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-06
+
 ### Fixed
 
 - Fixed compatibility between the `gems` gem v2 and v3, which caused the cache to be unreadable, and libyear exiting without result or output.
