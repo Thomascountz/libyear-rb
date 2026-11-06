@@ -37,6 +37,25 @@ class TestFileCache < Minitest::Test
     assert_equal [:yielded_data], result
   end
 
+  def test_gem_info_fetcher_caches_versions_as_hashes
+    cache_dir = Dir.mktmpdir
+    LibyearRb.cache = LibyearRb::FileCache.new(cache_dir: cache_dir)
+    fetcher = LibyearRb::GemInfoFetcher.new("rubygems.org")
+    client = fetcher.instance_variable_get(:@client)
+    response = '[{"number":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","prerelease":false}]'
+    client.define_singleton_method(:get) { |_path| response }
+
+    fetcher.versions_for("rails")
+
+    cache_file = Pathname.new(cache_dir).join("rubygems_org", "rails.json")
+    cached_version = JSON.parse(cache_file.read).first
+
+    assert_kind_of Hash, cached_version
+    assert_equal "1.0.0", cached_version.fetch("number")
+    assert_equal "2024-01-01T00:00:00.000Z", cached_version.fetch("created_at")
+    assert_equal false, cached_version.fetch("prerelease") # rubocop:disable Minitest/RefuteFalse
+  end
+
   def test_fetch_returns_cached_data_without_yielding
     cache_dir = Dir.mktmpdir
     cache = LibyearRb::FileCache.new(cache_dir: cache_dir)
