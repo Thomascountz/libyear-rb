@@ -20,6 +20,9 @@ module LibyearRb
         versions_metadata.reject(&:prerelease?)
       end
 
+      # Filter out different variant of the same release
+      comparable_versions = comparable_versions.uniq(&:number)
+
       latest_version_info = comparable_versions.first
 
       latest_version = latest_version_info.number
