@@ -96,6 +96,30 @@ class TestDependencyAnalyzer < Minitest::Test
     assert_equal "6.1.0", result.latest_version.to_s
   end
 
+  def test_counts_platform_variants_of_the_same_version_once
+    # Gems like grpc publish several platform-specific variants (ruby,
+    # x86_64-linux, arm64-darwin, ...) of each release, which show up as
+    # multiple entries with the same version number.
+    spec = LibyearRb::Spec.new(name: "grpc", version: "1.60.0", direct: true)
+    versions_metadata = [
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.62.0"), created_at: Date.new(2024, 3, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.62.0"), created_at: Date.new(2024, 3, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.62.0"), created_at: Date.new(2024, 3, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.61.0"), created_at: Date.new(2024, 2, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.61.0"), created_at: Date.new(2024, 2, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.61.0"), created_at: Date.new(2024, 2, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.60.0"), created_at: Date.new(2024, 1, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.60.0"), created_at: Date.new(2024, 1, 1), prerelease?: false),
+      LibyearRb::GemVersion.new(name: "grpc", number: Gem::Version.new("1.60.0"), created_at: Date.new(2024, 1, 1), prerelease?: false)
+    ]
+
+    result = LibyearRb::DependencyAnalyzer.freshness(spec, versions_metadata)
+
+    assert_equal 2, result.version_distance
+    assert_equal Gem::Version.new("1.62.0"), result.latest_version
+    assert_equal 60, result.libyear_in_days
+  end
+
   def test_ensures_libyear_is_never_negative
     spec = LibyearRb::Spec.new(name: "rails", version: "6.0.0", direct: true)
     # Edge case: latest version has earlier date than current

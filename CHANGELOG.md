@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- When calculating the "versions behind" numbers, we now count all the platform specific versions of the same release as just _one_ version, not one version per platform.
+
 ## [0.4.0] - 2026-11-06
 
 ### Fixed
